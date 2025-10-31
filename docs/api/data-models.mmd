@@ -33,7 +33,7 @@ erDiagram
         INT quantity
     }
 
-    "ORDER" {
+    ORDER {
         INT id PK
         INT userId FK
         STRING status
@@ -81,10 +81,10 @@ erDiagram
     CART ||--o{ CART_ITEM : contains
     PRODUCT ||--o{ PRODUCT_OPTION : has
     PRODUCT_OPTION ||--o{ CART_ITEM : referenced_in
-    USER ||--o{ "ORDER" : places
-    "ORDER" ||--o{ ORDER_ITEM : contains
+    USER ||--o{ ORDER : places
+    ORDER ||--o{ ORDER_ITEM : contains
     PRODUCT_OPTION ||--o{ ORDER_ITEM : referenced_in
     COUPON ||--o{ USER_COUPON : issued_to
     USER ||--o{ USER_COUPON : owns
-    USER_COUPON ||--o{ "ORDER" : applied_to
+    USER_COUPON ||--o{ ORDER : applied_to
     PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracked_in

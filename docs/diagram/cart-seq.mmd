@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor 사용자
+    participant CartAPI as "CartController"
+    participant MockServer as "Mock API Server"
+
+%% 4. 장바구니 담기
+    사용자->>CartAPI: POST /api/carts {userId, productOptionId, quantity}
+    CartAPI->>MockServer: 재고 확인 (productOptionId)
+    alt 재고 충분
+        MockServer-->>CartAPI: 재고 OK
+        CartAPI->>MockServer: 장바구니 항목 생성
+        MockServer-->>CartAPI: {cartId}
+        CartAPI-->>사용자: 응답 201
+    else 재고 부족
+        CartAPI-->>사용자: 응답 400 (재고 부족)
+    end
+
+%% 5. 장바구니 조회
+    사용자->>CartAPI: GET /api/carts?uid={uid}
+    CartAPI->>MockServer: 사용자 장바구니 항목 조회
+    MockServer-->>CartAPI: [{cartItemId, productOption: {id, color, size, price}, quantity}]
+    CartAPI-->>사용자: 응답 200 (총 금액 포함)
+
+%% 6. 장바구니 항목 삭제
+    사용자->>CartAPI: DELETE /api/carts/{id}
+    CartAPI->>MockServer: 장바구니 항목 삭제
+    MockServer-->>CartAPI: 삭제 성공
+    CartAPI->>MockServer: 총 금액 재계산
+    MockServer-->>CartAPI: {totalAmount}
+    CartAPI-->>사용자: 응답 204

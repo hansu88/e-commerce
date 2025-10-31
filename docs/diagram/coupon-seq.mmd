@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    actor 사용자
+    participant CouponAPI as "CouponController"
+    participant MockServer as "Mock API Server"
+
+%% 10. 쿠폰 발급
+    사용자->>CouponAPI: POST /api/coupons/{id}/issue {userId}
+    CouponAPI->>MockServer: 쿠폰 발급 가능 여부 확인 (totalQuantity vs issuedQuantity)
+    alt 발급 가능
+        MockServer-->>CouponAPI: 쿠폰 발급 완료 {couponId, issuedAt}
+        CouponAPI-->>사용자: 응답 201
+    else 발급 불가 / 선착순 초과
+        MockServer-->>CouponAPI: 발급 실패
+        CouponAPI-->>사용자: 응답 409
+    end
+
+%% 11. 내 쿠폰 조회
+    사용자->>CouponAPI: GET /api/coupons/my?uid={uid}&state=AVAILABLE
+    CouponAPI->>MockServer: 사용자 쿠폰 목록 조회 (필터: AVAILABLE)
+    MockServer-->>CouponAPI: [{userCouponId, couponId, discountAmount, validUntil, status}]
+    CouponAPI-->>사용자: 응답 200
+
+%% 12. 쿠폰 사용 이력 확인
+    Note over CouponAPI, MockServer: 주문 결제 시 쿠폰 사용 기록 저장
+    CouponAPI->>MockServer: 쿠폰 사용 기록 등록 {userId, couponId, orderId, usedAt}
+    MockServer-->>CouponAPI: 사용 기록 저장 완료
