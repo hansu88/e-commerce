@@ -5,6 +5,7 @@ import com.hhplus.ecommerce.coupon.dto.CouponIssueResponseDto;
 import com.hhplus.ecommerce.coupon.dto.MyCouponResponseDto;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -14,12 +15,19 @@ public class CouponController {
     @PostMapping("/{id}/issue")
     public CouponIssueResponseDto issueCoupon(@PathVariable Long id,
                                               @RequestBody CouponIssueRequestDto request) {
-        return new CouponIssueResponseDto(/*mock*/);
+        // Mock 발급 시간
+        String issuedAt = LocalDateTime.now().toString();
+
+        return new CouponIssueResponseDto(id, issuedAt);
     }
 
     @GetMapping("/my")
     public List<MyCouponResponseDto> getMyCoupons(@RequestParam Long uid,
                                                   @RequestParam String state) {
-        return List.of(new MyCouponResponseDto(/*mock*/));
+        // Mock 데이터 예시
+        return List.of(
+                new MyCouponResponseDto(1L, 101L, 5000, "2025-12-31", "AVAILABLE"),
+                new MyCouponResponseDto(2L, 102L, 10000, "2025-11-30", "USED")
+        );
     }
 }
