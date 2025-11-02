@@ -1,4 +1,4 @@
-package domain.stock;
+package com.hhplus.ecommerce.domain.stock;
 
 public enum StockChangeReason {
     ORDER,

@@ -1,10 +1,10 @@
-package presentation.controller;
+package com.hhplus.ecommerce.presentation.controller;
 
-import presentation.dto.response.ErrorResponse;
-import presentation.dto.request.OrderCreateRequestDto;
-import presentation.dto.request.OrderPayRequestDto;
-import presentation.dto.response.OrderPayResponseDto;
-import presentation.dto.response.OrderResponseDto;
+import com.hhplus.ecommerce.presentation.dto.response.ErrorResponse;
+import com.hhplus.ecommerce.presentation.dto.request.OrderCreateRequestDto;
+import com.hhplus.ecommerce.presentation.dto.request.OrderPayRequestDto;
+import com.hhplus.ecommerce.presentation.dto.response.OrderPayResponseDto;
+import com.hhplus.ecommerce.presentation.dto.response.OrderResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

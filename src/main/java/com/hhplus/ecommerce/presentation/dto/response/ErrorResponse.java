@@ -1,4 +1,4 @@
-package presentation.dto.response;
+package com.hhplus.ecommerce.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

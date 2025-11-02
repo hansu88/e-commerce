@@ -1,4 +1,4 @@
-package domain.coupon;
+package com.hhplus.ecommerce.domain.coupon;
 
 public enum UserCouponStatus {
     AVAILABLE,

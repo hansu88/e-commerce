@@ -1,4 +1,4 @@
-package presentation.dto.request;
+package com.hhplus.ecommerce.presentation.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
