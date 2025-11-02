@@ -1,11 +1,12 @@
-package com.hhplus.ecommerce.order.dto;
+package presentation.dto.request;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class OrderPayResponseDto {
-    private Long orderId;
+public class OrderPayRequestDto {
     private String status;
+    private String paymentMethod;
 }

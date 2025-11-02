@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.coupon.dto;
+package presentation.dto.response;
 
 
 import lombok.AllArgsConstructor;

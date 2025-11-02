@@ -1,9 +1,9 @@
-package com.hhplus.ecommerce.controller;
+package presentation.controller;
 
-import com.hhplus.ecommerce.common.dto.ErrorResponse;
-import com.hhplus.ecommerce.product.dto.ProductDetailResponseDto;
-import com.hhplus.ecommerce.product.dto.ProductListResponseDto;
-import com.hhplus.ecommerce.product.dto.ProductPopularResponseDto;
+import presentation.dto.response.ErrorResponse;
+import presentation.dto.response.ProductDetailResponseDto;
+import presentation.dto.response.ProductListResponseDto;
+import presentation.dto.response.ProductPopularResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -1,9 +1,9 @@
-package com.hhplus.ecommerce.controller;
+package presentation.controller;
 
-import com.hhplus.ecommerce.common.dto.ErrorResponse;
-import com.hhplus.ecommerce.coupon.dto.CouponIssueRequestDto;
-import com.hhplus.ecommerce.coupon.dto.CouponIssueResponseDto;
-import com.hhplus.ecommerce.coupon.dto.MyCouponResponseDto;
+import presentation.dto.response.ErrorResponse;
+import presentation.dto.request.CouponIssueRequestDto;
+import presentation.dto.response.CouponIssueResponseDto;
+import presentation.dto.response.MyCouponResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
