@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+    actor 사용자
+    participant OrderAPI as "OrderController"
+    participant MockServer as "Mock API Server"
+    participant PaymentGateway as "결제 시스템"
+
+%% 7. 주문 생성
+    사용자->>OrderAPI: POST /api/orders {userId, cartItems: [{cartItemId, quantity}], couponId?}
+    OrderAPI->>MockServer: 재고 확인 (각 productOptionId)
+    alt 재고 충분
+        MockServer-->>OrderAPI: 재고 OK
+        OrderAPI->>MockServer: 주문 생성, 재고 예약
+        MockServer-->>OrderAPI: {orderId, status: CREATED}
+        OrderAPI-->>사용자: 응답 201
+    else 재고 부족
+        OrderAPI-->>사용자: 응답 400 (재고 부족, 롤백)
+    end
+
+%% 8. 주문 결제
+    사용자->>OrderAPI: POST /api/orders/{id}/pay {paymentMethod, balanceCheck}
+    OrderAPI->>PaymentGateway: 결제 승인 요청
+    alt 결제 성공
+        PaymentGateway-->>OrderAPI: 결제 승인
+        OrderAPI->>MockServer: 주문 상태 PAID, 쿠폰 적용
+        MockServer-->>OrderAPI: {orderId, status: PAID, appliedCouponId?}
+        OrderAPI-->>사용자: 응답 200
+    else 잔액 부족/결제 실패
+        PaymentGateway-->>OrderAPI: 결제 실패
+        OrderAPI->>MockServer: 주문 상태 롤백
+        MockServer-->>OrderAPI: {orderId, status: CREATED}
+        OrderAPI-->>사용자: 응답 402 / 409
+    end
+
+%% 9. 재고 차감
+    Note over OrderAPI, MockServer: 주문 완료 후, 시스템 차원 재고 차감
+    OrderAPI->>MockServer: 재고 최종 차감
+    alt 재고 충분
+        MockServer-->>OrderAPI: 재고 차감 완료
+    else 재고 부족
+        MockServer-->>OrderAPI: 재고 차감 실패 (동시성 처리 필요)
+        OrderAPI-->>사용자: 응답 409
+    end

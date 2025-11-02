@@ -1,0 +1,90 @@
+erDiagram
+    USER {
+        INT id PK
+        STRING name
+    }
+
+    PRODUCT {
+        INT id PK
+        STRING name
+        INT price
+        STRING status
+        DATETIME createdAt
+    }
+
+    PRODUCT_OPTION {
+        INT id PK
+        INT productId FK
+        STRING color
+        STRING size
+        INT stock
+    }
+
+    CART {
+        INT id PK
+        INT userId FK
+        DATETIME createdAt
+    }
+
+    CART_ITEM {
+        INT id PK
+        INT cartId FK
+        INT productOptionId FK
+        INT quantity
+    }
+
+    ORDER {
+        INT id PK
+        INT userId FK
+        STRING status
+        INT totalAmount
+        DATETIME createdAt
+    }
+
+    ORDER_ITEM {
+        INT id PK
+        INT orderId FK
+        INT productOptionId FK
+        INT quantity
+        INT price
+    }
+
+    COUPON {
+        INT id PK
+        STRING code
+        INT discountAmount
+        INT totalQuantity
+        INT issuedQuantity
+        DATETIME validFrom
+        DATETIME validUntil
+    }
+
+    USER_COUPON {
+        INT id PK
+        INT userId FK
+        INT couponId FK
+        DATETIME issuedAt
+        DATETIME usedAt
+        STRING status
+    }
+
+    STOCK_HISTORY {
+        INT id PK
+        INT productOptionId FK
+        INT changeQty
+        STRING reason
+        DATETIME createdAt
+    }
+
+%% 관계 정의
+    USER ||--o{ CART : owns
+    CART ||--o{ CART_ITEM : contains
+    PRODUCT ||--o{ PRODUCT_OPTION : has
+    PRODUCT_OPTION ||--o{ CART_ITEM : referenced_in
+    USER ||--o{ ORDER : places
+    ORDER ||--o{ ORDER_ITEM : contains
+    PRODUCT_OPTION ||--o{ ORDER_ITEM : referenced_in
+    COUPON ||--o{ USER_COUPON : issued_to
+    USER ||--o{ USER_COUPON : owns
+    USER_COUPON ||--o{ ORDER : applied_to
+    PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracked_in
