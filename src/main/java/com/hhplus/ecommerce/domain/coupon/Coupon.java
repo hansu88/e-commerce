@@ -1,10 +1,17 @@
 package com.hhplus.ecommerce.domain.coupon;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDateTime;
 
 /**
  * 쿠폰 Entity
  */
+@Getter
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class Coupon {
     private Long id;
     private String code;
@@ -14,28 +21,4 @@ public class Coupon {
     private LocalDateTime validFrom;
     private LocalDateTime validUntil;
 
-    // 생성자
-    public Coupon(Long id, String code, Integer discountAmount, Integer totalQuantity,
-                  Integer issuedQuantity, LocalDateTime validFrom, LocalDateTime validUntil) {
-        this.id = id;
-        this.code = code;
-        this.discountAmount = discountAmount;
-        this.totalQuantity = totalQuantity;
-        this.issuedQuantity = issuedQuantity;
-        this.validFrom = validFrom;
-        this.validUntil = validUntil;
-    }
-
-    // Getter
-    public Long getId() { return id; }
-    public String getCode() { return code; }
-    public Integer getDiscountAmount() { return discountAmount; }
-    public Integer getTotalQuantity() { return totalQuantity; }
-    public Integer getIssuedQuantity() { return issuedQuantity; }
-    public LocalDateTime getValidFrom() { return validFrom; }
-    public LocalDateTime getValidUntil() { return validUntil; }
-
-    // Setter
-    public void setId(Long id) { this.id = id; }
-    public void setIssuedQuantity(Integer issuedQuantity) { this.issuedQuantity = issuedQuantity; }
 }
