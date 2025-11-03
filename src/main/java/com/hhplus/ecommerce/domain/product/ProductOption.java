@@ -17,4 +17,7 @@ public class ProductOption {
     private String size;
     private Integer stock;
 
+    public void setId(long andIncrement) {
+
+    }
 }

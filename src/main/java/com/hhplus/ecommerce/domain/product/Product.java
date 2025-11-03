@@ -19,4 +19,7 @@ public class Product {
     private ProductStatus status;
     private LocalDateTime createdAt;
 
+    public void setId(long andIncrement) {
+        this.id = andIncrement;
+    }
 }
