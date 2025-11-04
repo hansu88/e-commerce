@@ -2,7 +2,7 @@ package com.hhplus.ecommerce.application.service;
 
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
-import com.hhplus.ecommerce.domain.stock.OutOfStockException;
+import com.hhplus.ecommerce.exception.OutOfStockException;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +25,6 @@ public class StockService {
      * @param productOptionId 상품 옵션 ID
      * @param quantity 차감할 수량
      * @param reason 차감 사유
-     * @throws IllegalArgumentException 옵션이 존재하지 않을 때
-     * @throws OutOfStockException 재고가 부족할 때
      */
     public void decreaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
         ProductOption option = productOptionRepository.findById(productOptionId)
