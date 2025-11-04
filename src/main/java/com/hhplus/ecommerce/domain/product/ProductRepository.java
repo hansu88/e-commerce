@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface ProductRepository {
 
     /**
-     * 상품 저장 (초기 데이터 세팅용)
+     * 상품 저장 (데이터 저장)
      */
     Product save(Product product);
 

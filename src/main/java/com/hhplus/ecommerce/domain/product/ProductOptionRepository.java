@@ -6,12 +6,12 @@ import java.util.Optional;
 public interface ProductOptionRepository {
 
     /**
-     * 상품 옵션 저장 (초기 데이터 세팅용)
+     * 상품 옵션 저장 (초기 데이터)
      */
     ProductOption save(ProductOption productOption);
 
     /**
-     * ID로 옵션 조회 (재고 확인, 장바구니 담기용)
+     * ID로 옵션 조회 (재고 확인)
      */
     Optional<ProductOption> findById(Long id);
 
