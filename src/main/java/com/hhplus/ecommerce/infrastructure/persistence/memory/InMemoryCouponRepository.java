@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class InMemoryCouponRepository implements CouponRepository {
-    private final Map<Long, Coupon> coupons = new ConcurrentHashMap<>();
+    private final Map<Long, Coupon> store = new ConcurrentHashMap<>();
     private final AtomicLong counter = new AtomicLong();
 
     /**
@@ -24,7 +24,7 @@ public class InMemoryCouponRepository implements CouponRepository {
         if (coupon.getId() == null) {
             coupon.setId(counter.incrementAndGet());
         }
-        coupons.put(coupon.getId(), coupon);
+        store.put(coupon.getId(), coupon);
         return coupon;
     }
 
@@ -35,7 +35,7 @@ public class InMemoryCouponRepository implements CouponRepository {
      */
     @Override
     public Optional<Coupon> findById(Long id) {
-        return Optional.ofNullable(coupons.get(id));
+        return Optional.ofNullable(store.get(id));
     }
 
     /**
@@ -44,6 +44,6 @@ public class InMemoryCouponRepository implements CouponRepository {
      */
     @Override
     public List<Coupon> findAll() {
-        return new ArrayList<>(coupons.values());
+        return new ArrayList<>(store.values());
     }
 }
