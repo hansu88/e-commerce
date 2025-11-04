@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.domain.stock;
+package com.hhplus.ecommerce.exception;
 
 /**
  * 재고 부족 예외

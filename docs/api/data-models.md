@@ -44,6 +44,7 @@ orderId (FK → Order)
 productOptionId (FK → ProductOption)  
 quantity  
 price
+createdAt
 
 ### Coupon
 id (PK)  
