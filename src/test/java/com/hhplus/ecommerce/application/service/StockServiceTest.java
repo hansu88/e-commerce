@@ -2,7 +2,7 @@ package com.hhplus.ecommerce.application.service;
 
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
-import com.hhplus.ecommerce.domain.stock.OutOfStockException;
+import com.hhplus.ecommerce.exception.OutOfStockException;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +25,6 @@ class StockServiceTest {
 
     @BeforeEach
     void setUp() {
-        // InMemory Repository 사용 (실제 구현체)
         productOptionRepository = new InMemoryProductOptionRepository();
         stockService = new StockService(productOptionRepository);
     }
