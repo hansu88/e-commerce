@@ -15,7 +15,14 @@ import java.time.LocalDateTime;
 public class StockHistory {
     private Long id;
     private Long productOptionId;
-    private Integer changeQuantity;
+    private Integer changeQty;
     private StockChangeReason reason;
     private LocalDateTime createdAt;
+
+    public StockHistory(Long productOptionId, Integer changeQty, StockChangeReason reason) {
+        this.productOptionId = productOptionId;
+        this.changeQty = changeQty;
+        this.reason = reason;
+        this.createdAt = LocalDateTime.now();
+    }
 }
