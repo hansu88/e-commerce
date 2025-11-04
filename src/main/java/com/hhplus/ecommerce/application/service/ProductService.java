@@ -4,6 +4,7 @@ import com.hhplus.ecommerce.domain.product.Product;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
 import com.hhplus.ecommerce.domain.product.ProductRepository;
+import com.hhplus.ecommerce.exception.ProductNotFoundException;
 import com.hhplus.ecommerce.presentation.dto.response.ProductDetailResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.ProductListResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.ProductPopularResponseDto;
@@ -44,7 +45,7 @@ public class ProductService {
      */
     public ProductDetailResponseDto getProductDetailDto(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + productId));
 
         List<ProductOption> options = productOptionRepository.findByProductId(productId);
 

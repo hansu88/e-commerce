@@ -29,13 +29,9 @@ public class ProductController {
     /** 상품 상세 조회 */
     @GetMapping("/{id}")
     public ResponseEntity<?> getProduct(@PathVariable Long id) {
-        try {
-            ProductDetailResponseDto response = productService.getProductDetailDto(id);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404)
-                    .body(new ErrorResponse("PRODUCT_NOT_FOUND", e.getMessage()));
-        }
+        ProductDetailResponseDto response = productService.getProductDetailDto(id);
+        return ResponseEntity.ok(response);
+
     }
 
     /** 인기 상품 조회 */
