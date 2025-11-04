@@ -1,0 +1,108 @@
+package com.hhplus.ecommerce.application.service;
+
+import com.hhplus.ecommerce.domain.order.Order;
+import com.hhplus.ecommerce.domain.order.OrderItem;
+import com.hhplus.ecommerce.domain.product.ProductOption;
+import com.hhplus.ecommerce.exception.OutOfStockException;
+import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
+public class OrderServiceTest {
+    private OrderService orderService;
+    private StockService stockService;
+    private InMemoryProductOptionRepository productOptionRepository;
+
+    @BeforeEach
+    void setUp() {
+        productOptionRepository = new InMemoryProductOptionRepository();
+        stockService = new StockService(productOptionRepository);
+        orderService = new OrderService(new InMemoryOrderRepository(), stockService);
+    }
+
+    @Test
+    @DisplayName("주문 생성 시 재고 차감 테스트")
+    void createOrder_DecreasesStock() {
+        // Given - 제품 10개 등록
+        ProductOption option = new ProductOption();
+        option.setProductId(1L);
+        option.setColor("Red");
+        option.setSize("M");
+        option.setStock(10);
+        productOptionRepository.save(option);
+
+        OrderItem item = new OrderItem();
+        item.setProductOptionId(option.getId());
+        item.setQuantity(3);
+        item.setPrice(10000);
+
+        // When - 3개 주문
+        Order order = orderService.createOrder(1L, List.of(item));
+
+        // Then - 개수와 금액 확인
+        ProductOption updatedOption = productOptionRepository.findById(option.getId()).orElseThrow();
+        assertThat(updatedOption.getStock()).isEqualTo(7); // 10 - 3
+
+        assertThat(order.getTotalAmount()).isEqualTo(30000);
+        assertThat(order.getStatus()).isEqualTo(com.hhplus.ecommerce.domain.order.OrderStatus.CREATED);
+    }
+
+    @Test
+    @DisplayName("재고 부족 시 주문 실패")
+    void createOrder_OutOfStock() {
+        // Given - 상품도록 및 상품 개수가 재고 초과
+        ProductOption option = new ProductOption();
+        option.setProductId(1L);
+        option.setColor("Red");
+        option.setSize("M");
+        option.setStock(2);
+        productOptionRepository.save(option);
+
+        OrderItem item = new OrderItem();
+        item.setProductOptionId(option.getId());
+        item.setQuantity(5);
+        item.setPrice(10000);
+
+        
+        // When & Then - 결과에 대한 오류 발생
+        assertThatThrownBy(() -> orderService.createOrder(1L, List.of(item)))
+                .isInstanceOf(OutOfStockException.class);
+    }
+
+    @Test
+    @DisplayName("결제 시 재고 변경 없이 상태만 PAID")
+    void payOrder_ChangesStatusOnly() {
+
+        // Given -
+        ProductOption option = new ProductOption();
+        option.setProductId(1L);
+        option.setColor("Red");
+        option.setSize("M");
+        option.setStock(10);
+        productOptionRepository.save(option);
+
+        OrderItem item = new OrderItem();
+        item.setProductOptionId(option.getId());
+        item.setQuantity(3);
+        item.setPrice(10000);
+
+        Order order = orderService.createOrder(1L, List.of(item));
+
+        // When -
+        orderService.payOrder(order.getId(), "CREDIT_CARD");
+
+        Order paidOrder = new InMemoryOrderRepository().findById(order.getId()).orElse(order);
+        assertThat(paidOrder.getStatus()).isEqualTo(com.hhplus.ecommerce.domain.order.OrderStatus.PAID);
+
+        // 재고는 이미 차감 완료 상태
+        ProductOption updatedOption = productOptionRepository.findById(option.getId()).orElseThrow();
+        assertThat(updatedOption.getStock()).isEqualTo(7);
+    }
+}
