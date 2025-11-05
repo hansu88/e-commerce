@@ -1,5 +1,6 @@
 package com.hhplus.ecommerce.application.service;
 
+import com.hhplus.ecommerce.domain.coupon.CouponRepository;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderItem;
 import com.hhplus.ecommerce.domain.product.ProductOption;
@@ -9,6 +10,7 @@ import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOpt
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -19,11 +21,16 @@ public class OrderServiceTest {
     private OrderService orderService;
     private StockService stockService;
     private InMemoryProductOptionRepository productOptionRepository;
+    private InMemoryOrderRepository orderRepository;
+    private CouponService couponService;
 
     @BeforeEach
     void setUp() {
         productOptionRepository = new InMemoryProductOptionRepository();
         stockService = new StockService(productOptionRepository);
+        orderRepository = new InMemoryOrderRepository();
+        couponService = Mockito.mock(CouponService.class);
+
         orderService = new OrderService(new InMemoryOrderRepository(), stockService);
     }
 
@@ -43,8 +50,10 @@ public class OrderServiceTest {
         item.setQuantity(3);
         item.setPrice(10000);
 
-        // When - 3개 주문
-        Order order = orderService.createOrder(1L, List.of(item));
+        Long userCouponId = 1L;
+
+        // When - 3개 주문과 쿠폰사용
+        Order order = orderService.createOrder(1L, List.of(item),userCouponId);
 
         // Then - 개수와 금액 확인
         ProductOption updatedOption = productOptionRepository.findById(option.getId()).orElseThrow();

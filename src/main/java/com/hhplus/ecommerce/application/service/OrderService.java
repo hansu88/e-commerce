@@ -15,6 +15,7 @@ public class OrderService {
 
     private final StockService stockService;
     private OrderRepository orderRepository;
+    private CouponService couponService;
 
     public OrderService(OrderRepository orderRepository, StockService stockService) {
         this.orderRepository = orderRepository;
@@ -24,11 +25,15 @@ public class OrderService {
     /**
      * 재고 증감 ,차감
      */
-    public Order createOrder(Long userId, List<OrderItem> orderItems ) {
+    public Order createOrder(Long userId, List<OrderItem> orderItems , Long userCouponId ) {
 
         // 사용자가 고른 재고 차감
         for (OrderItem orderItem : orderItems) {
             stockService.decreaseStock(orderItem.getProductOptionId(), orderItem.getQuantity(), StockChangeReason.ORDER);
+        }
+
+        if (userCouponId != null) {
+            couponService.useCoupon(userCouponId);
         }
 
         // 주문 생성
