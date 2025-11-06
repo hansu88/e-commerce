@@ -1,4 +1,6 @@
-package com.hhplus.ecommerce.domain.order;
+package com.hhplus.ecommerce.infrastructure.persistence.base;
+
+import com.hhplus.ecommerce.domain.order.Order;
 
 import java.util.List;
 import java.util.Optional;
