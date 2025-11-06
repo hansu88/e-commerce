@@ -1,7 +1,7 @@
 package com.hhplus.ecommerce.infrastructure.persistence.memory;
 
 import com.hhplus.ecommerce.domain.order.Order;
-import com.hhplus.ecommerce.domain.order.OrderRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.OrderRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -15,13 +15,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class InMemoryOrderRepository implements OrderRepository {
 
     private final Map<Long, Order> store = new ConcurrentHashMap<>();
-    private final AtomicLong orderId = new AtomicLong(1001);
+    private final AtomicLong idGenerator = new AtomicLong(1001);
 
 
     @Override
     public Order save(Order order) {
         if (order.getId() == null) {
-            order.setId(orderId.incrementAndGet());
+            order.setId(idGenerator.incrementAndGet());
         }
         store.put(order.getId(), order);
         return order;

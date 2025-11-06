@@ -1,7 +1,7 @@
 package com.hhplus.ecommerce.infrastructure.persistence.memory;
 
 import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -12,10 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-/**
- * ProductOption 인메모리 저장소 구현체
- * ConcurrentHashMap을 사용하여 Thread-safe 보장
- */
+
 @Repository
 public class InMemoryProductOptionRepository implements ProductOptionRepository {
 
