@@ -12,7 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-
+/**
+ * ProductOption 인메모리 저장소 구현체
+ * ConcurrentHashMap을 사용하여 Thread-safe 보장
+ */
 @Repository
 public class InMemoryProductOptionRepository implements ProductOptionRepository {
 

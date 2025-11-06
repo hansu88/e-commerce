@@ -14,22 +14,35 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class InMemoryCouponRepository implements CouponRepository {
     private final Map<Long, Coupon> store = new ConcurrentHashMap<>();
-    private final AtomicLong idGenerator = new AtomicLong();
+    private final AtomicLong counter = new AtomicLong();
 
+    /**
+     * 쿠폰 관련 저장
+     * @param coupon
+     */
     @Override
     public Coupon save(Coupon coupon) {
         if (coupon.getId() == null) {
-            coupon.setId(idGenerator.incrementAndGet());
+            coupon.setId(counter.incrementAndGet());
         }
         store.put(coupon.getId(), coupon);
         return coupon;
     }
 
+    /**
+     * 쿠폰 존재하면 반환 없으면 빈값
+     * @param id
+     *
+     */
     @Override
     public Optional<Coupon> findById(Long id) {
         return Optional.ofNullable(store.get(id));
     }
 
+    /**
+     * 
+     *  쿠폰 전체리스트 확인
+     */
     @Override
     public List<Coupon> findAll() {
         return new ArrayList<>(store.values());
