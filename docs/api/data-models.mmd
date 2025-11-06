@@ -38,6 +38,8 @@ erDiagram
         INT userId FK
         STRING status
         INT totalAmount
+        INT discountAmount
+        INT userCouponId
         DATETIME createdAt
     }
 
@@ -47,10 +49,12 @@ erDiagram
         INT productOptionId FK
         INT quantity
         INT price
+        DATETIME createdAt2
     }
 
     COUPON {
         INT id PK
+        STRING name
         STRING code
         INT discountAmount
         INT totalQuantity
