@@ -1,4 +1,6 @@
-package com.hhplus.ecommerce.domain.stock;
+package com.hhplus.ecommerce.infrastructure.persistence.base;
+
+import com.hhplus.ecommerce.domain.stock.StockHistory;
 
 import java.util.List;
 import java.util.Optional;
