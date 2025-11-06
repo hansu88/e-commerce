@@ -1,9 +1,8 @@
 package com.hhplus.ecommerce.application.service;
 
-import com.hhplus.ecommerce.domain.order.OrderItem;
-import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
 import com.hhplus.ecommerce.domain.product.Product;
 import com.hhplus.ecommerce.domain.product.ProductOption;
+import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import com.hhplus.ecommerce.presentation.exception.ProductNotFoundException;
@@ -12,16 +11,9 @@ import com.hhplus.ecommerce.presentation.dto.response.ProductListResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.ProductPopularResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * 상품 서비스
- * - 상품 조회, 상세 조회, 인기 상품 조회 처리
- */
 @Service
 public class ProductService {
 
@@ -60,12 +52,6 @@ public class ProductService {
 
     /**
      * 상품 상세 조회 (옵션 포함, DTO 반환)
-     * - Product와 ProductOption을 결합하여 ProductDetailResponseDto 생성
-     * - 옵션별 재고 정보 포함
-     *
-     * @param productId 조회할 상품 ID
-     * @return 상품 상세 DTO
-     * @throws ProductNotFoundException 상품이 존재하지 않을 경우
      */
     public ProductDetailResponseDto getProductDetailDto(Long productId) {
         Product product = productRepository.findById(productId)
@@ -92,44 +78,44 @@ public class ProductService {
     }
 
     /**
-     * 인기 상품 조회 (최근 N일간 판매량 기준)
-     * @param days 최근 일수
-     * @param limit 조회할 상품 개수
-     * @return 인기 상품 목록
+     * 인기 상품 조회 (DTO 반환)
+     * 최근 N일간 판매량 기준 상위 상품 조회
      */
     public List<ProductPopularResponseDto> getPopularProductsDto(int days, int limit) {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
-        
-        // 최근 N일간의 모든 OrderItem 조회
-        List<OrderItem> recentOrderItems = orderItemRepository.findAll().stream()
+        // 1. 최근 N일간의 OrderItem 조회
+        java.time.LocalDateTime startDate = java.time.LocalDateTime.now().minusDays(days);
+        List<com.hhplus.ecommerce.domain.order.OrderItem> recentOrderItems = orderItemRepository.findAll().stream()
                 .filter(item -> item.getCreatedAt() != null && item.getCreatedAt().isAfter(startDate))
                 .collect(Collectors.toList());
-        
-        // ProductOption ID → Product ID 매핑
-        Map<Long, Long> optionToProductMap = new HashMap<>();
-        for (ProductOption option : productOptionRepository.findAll()) {
-            optionToProductMap.put(option.getId(), option.getProductId());
-        }
-        
-        // Product별 판매량 집계
-        Map<Long, Integer> productSalesMap = new HashMap<>();
-        for (OrderItem item : recentOrderItems) {
-            Long productId = optionToProductMap.get(item.getProductOptionId());
-            if (productId != null) {
-                productSalesMap.merge(productId, item.getQuantity(), Integer::sum);
+
+        // 2. ProductOption → Product 매핑하여 상품별 판매량 집계
+        java.util.Map<Long, Integer> productSalesMap = new java.util.HashMap<>();
+
+        for (com.hhplus.ecommerce.domain.order.OrderItem item : recentOrderItems) {
+            ProductOption option = productOptionRepository.findById(item.getProductOptionId()).orElse(null);
+            if (option != null) {
+                Long productId = option.getProductId();
+                productSalesMap.put(productId,
+                    productSalesMap.getOrDefault(productId, 0) + item.getQuantity());
             }
         }
-        
-        // Product 정보 조회 및 판매량과 결합
-        return productRepository.findAll().stream()
-                .filter(product -> productSalesMap.containsKey(product.getId()))
-                .map(product -> new ProductPopularResponseDto(
-                        product.getId(),
-                        product.getName(),
-                        productSalesMap.get(product.getId())
-                ))
-                .sorted((a, b) -> Integer.compare(b.getSoldCount(), a.getSoldCount())) // 판매량 내림차순
+
+        // 3. 판매량 순으로 정렬 후 상위 limit개 반환
+        return productSalesMap.entrySet().stream()
+                .sorted(java.util.Map.Entry.<Long, Integer>comparingByValue().reversed())
                 .limit(limit)
+                .map(entry -> {
+                    Product product = productRepository.findById(entry.getKey()).orElse(null);
+                    if (product != null) {
+                        return new ProductPopularResponseDto(
+                                product.getId(),
+                                product.getName(),
+                                entry.getValue()
+                        );
+                    }
+                    return null;
+                })
+                .filter(dto -> dto != null)
                 .collect(Collectors.toList());
     }
 }

@@ -29,6 +29,17 @@ public class CouponService {
     }
 
     /**
+     * Repository getter (OrderService에서 사용)
+     */
+    public CouponRepository getCouponRepository() {
+        return couponRepository;
+    }
+
+    public UserCouponRepository getUserCouponRepository() {
+        return userCouponRepository;
+    }
+
+    /**
      * 사용자에게 쿠폰 발급
      * 동시성 제어: Coupon ID별 synchronized 블록 적용
      * @param userId 사용자 ID
@@ -81,28 +92,6 @@ public class CouponService {
     }
 
     /**
-     * 쿠폰 사용 및 할인 금액 반환
-     * - UserCoupon 조회 -> Coupon 조회 -> 할인 금액 가져오기 -> 쿠폰 사용 처리
-     * - OrderService가 CouponRepository를 직접 의존하지 않도록 캡슐화
-     * @param userCouponId 사용자 쿠폰 ID
-     * @return 할인 금액
-     */
-    public int useCouponAndGetDiscount(Long userCouponId) {
-        // UserCoupon 조회
-        UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰을 찾을 수 없습니다: " + userCouponId));
-
-        // Coupon 조회하여 할인 금액 가져오기
-        Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
-                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다: " + userCoupon.getCouponId()));
-
-        // 쿠폰 사용 처리
-        useCoupon(userCouponId);
-
-        return coupon.getDiscountAmount();
-    }
-
-    /**
      * 쿠폰 복구 (주문 취소 시)
      * - 사용된 쿠폰을 다시 사용 가능 상태로 변경
      * @param userCouponId 사용자 쿠폰 ID
@@ -119,5 +108,4 @@ public class CouponService {
         userCoupon.setUsedAt(null);
         userCouponRepository.save(userCoupon);
     }
-
 }

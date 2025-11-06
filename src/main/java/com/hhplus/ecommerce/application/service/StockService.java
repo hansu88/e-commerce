@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 재고 관리 서비스
  * - 재고 차감/증가
  * - 재고 검증
- * - 동시성 제어 적용 (ProductOption ID별 Lock)
+ * - 동시성 제어 (ProductOption ID별 Lock)
  */
 @Service
 public class StockService {
@@ -40,7 +40,7 @@ public class StockService {
      * @param reason 차감 사유
      */
     public void decreaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
-        // ProductOption ID별 Lock 객체 획득 (없으면 생성)
+        // ProductOption ID별 Lock 객체 획득
         Object lock = lockMap.computeIfAbsent(productOptionId, k -> new Object());
         
         synchronized (lock) {
