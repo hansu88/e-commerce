@@ -1,10 +1,10 @@
 package com.hhplus.ecommerce.application.service;
 
 import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
-import com.hhplus.ecommerce.exception.OutOfStockException;
+import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryStockHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,18 +20,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class StockServiceTest {
 
-    private ProductOptionRepository productOptionRepository;
+    private InMemoryProductOptionRepository productOptionRepository;
+    private InMemoryStockHistoryRepository stockHistoryRepository;
     private StockService stockService;
 
     @BeforeEach
     void setUp() {
         productOptionRepository = new InMemoryProductOptionRepository();
-        stockService = new StockService(productOptionRepository);
+        stockHistoryRepository = new InMemoryStockHistoryRepository();
+        stockService = new StockService(productOptionRepository, stockHistoryRepository);
     }
 
     @Test
     @DisplayName("재고 차감 성공 - 주문 시 재고가 정상적으로 차감되어야 한다")
-    void decreaseStock_Success() {
+    void decreaseStockSuccess() {
         // Given - 재고 10개인 상품 옵션
         ProductOption option = new ProductOption();
         option.setProductId(1L);
@@ -50,7 +52,7 @@ class StockServiceTest {
 
     @Test
     @DisplayName("재고 부족 예외 - 요청 수량보다 재고가 적으면 예외가 발생해야 한다")
-    void decreaseStock_OutOfStock_ThrowsException() {
+    void decreaseStockOutOfStockThrowsException() {
         // Given - 재고 3개인 상품 옵션
         ProductOption option = new ProductOption();
         option.setProductId(1L);
@@ -72,7 +74,7 @@ class StockServiceTest {
 
     @Test
     @DisplayName("재고 증가 성공 - 주문 취소 시 재고가 정상적으로 증가해야 한다")
-    void increaseStock_Success() {
+    void increaseStockSuccess() {
         // Given - 재고 5개인 상품 옵션
         ProductOption option = new ProductOption();
         option.setProductId(1L);

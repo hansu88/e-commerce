@@ -1,8 +1,7 @@
 package com.hhplus.ecommerce.application.service;
 
-import com.hhplus.ecommerce.domain.product.ProductOptionRepository;
-import com.hhplus.ecommerce.domain.product.ProductRepository;
-import com.hhplus.ecommerce.exception.ProductNotFoundException;
+import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderItemRepository;
+import com.hhplus.ecommerce.presentation.exception.ProductNotFoundException;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,19 +13,21 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 public class ProductServiceTest {
 
     private ProductService productService;
-    private ProductRepository productRepository;
-    private ProductOptionRepository productOptionRepository;
+    private InMemoryProductRepository productRepository;
+    private InMemoryProductOptionRepository productOptionRepository;
+    private InMemoryOrderItemRepository orderItemRepository;
 
     @BeforeEach
     void setUp() {
         productRepository = new InMemoryProductRepository();
         productOptionRepository = new InMemoryProductOptionRepository();
-        productService = new ProductService(productRepository, productOptionRepository);
+        orderItemRepository = new InMemoryOrderItemRepository();
+        productService = new ProductService(productRepository, productOptionRepository, orderItemRepository);
     }
 
     @Test
     @DisplayName("상품 상세 조회 시 존재하지 않으면 ProductNotFoudException 발생 ")
-    void getProductDetail_NotFound_Exception() {
+    void getProductDetailNotFoundExceptio() {
 
         // Given - 존재하지 않는 상품 ID
         Long noProductId = 999L;
