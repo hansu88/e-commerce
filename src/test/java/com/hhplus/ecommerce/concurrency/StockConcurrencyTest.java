@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.concurrency;
 
-import com.hhplus.ecommerce.application.service.StockService;
+import com.hhplus.ecommerce.application.command.DecreaseStockCommand;
+import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
@@ -13,6 +14,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * 재고 차감 동시성 테스트
@@ -22,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class StockConcurrencyTest {
 
-    private StockService stockService;
+    private DecreaseStockUseCase decreaseStockUseCase;
     private InMemoryProductOptionRepository productOptionRepository;
     private InMemoryStockHistoryRepository stockHistoryRepository;
 
@@ -30,7 +32,7 @@ public class StockConcurrencyTest {
     void setUp() {
         productOptionRepository = new InMemoryProductOptionRepository();
         stockHistoryRepository = new InMemoryStockHistoryRepository();
-        stockService = new StockService(productOptionRepository, stockHistoryRepository);
+        decreaseStockUseCase = new DecreaseStockUseCase(productOptionRepository, stockHistoryRepository);
     }
 
     @Test
@@ -55,7 +57,8 @@ public class StockConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    stockService.decreaseStock(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    decreaseStockUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -69,11 +72,12 @@ public class StockConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 100개 성공, 0개 실패, 재고 0
-        assertThat(successCount.get()).isEqualTo(100);
-        assertThat(failCount.get()).isEqualTo(0);
-
         ProductOption updatedOption = productOptionRepository.findById(savedOption.getId()).orElseThrow();
-        assertThat(updatedOption.getStock()).isEqualTo(0);
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(100),
+                () -> assertThat(failCount.get()).isEqualTo(0),
+                () -> assertThat(updatedOption.getStock()).isEqualTo(0)
+        );
 
         System.out.println("===== 동시성 테스트 1 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
@@ -104,7 +108,8 @@ public class StockConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    stockService.decreaseStock(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    decreaseStockUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -118,11 +123,12 @@ public class StockConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 100개 성공, 50개 실패, 재고 0
-        assertThat(successCount.get()).isEqualTo(100);
-        assertThat(failCount.get()).isEqualTo(50);
-
         ProductOption updatedOption = productOptionRepository.findById(savedOption.getId()).orElseThrow();
-        assertThat(updatedOption.getStock()).isEqualTo(0);
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(100),
+                () -> assertThat(failCount.get()).isEqualTo(50),
+                () -> assertThat(updatedOption.getStock()).isEqualTo(0)
+        );
 
         System.out.println("===== 동시성 테스트 2 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
@@ -153,7 +159,8 @@ public class StockConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    stockService.decreaseStock(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), 1, StockChangeReason.ORDER);
+                    decreaseStockUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -167,12 +174,13 @@ public class StockConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 10개 성공, 10개 실패, 재고 0 (절대 음수 안됨)
-        assertThat(successCount.get()).isEqualTo(10);
-        assertThat(failCount.get()).isEqualTo(10);
-
         ProductOption updatedOption = productOptionRepository.findById(savedOption.getId()).orElseThrow();
-        assertThat(updatedOption.getStock()).isEqualTo(0);
-        assertThat(updatedOption.getStock()).isGreaterThanOrEqualTo(0); // 재고는 절대 음수가 될 수 없음
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(10),
+                () -> assertThat(failCount.get()).isEqualTo(10),
+                () -> assertThat(updatedOption.getStock()).isEqualTo(0),
+                () -> assertThat(updatedOption.getStock()).isGreaterThanOrEqualTo(0) // 재고는 절대 음수가 될 수 없음
+        );
 
         System.out.println("===== 동시성 테스트 3 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
@@ -206,7 +214,8 @@ public class StockConcurrencyTest {
             final int quantity = (i % 5) + 1; // 1, 2, 3, 4, 5개씩 순환
             executorService.submit(() -> {
                 try {
-                    stockService.decreaseStock(savedOption.getId(), quantity, StockChangeReason.ORDER);
+                    DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), quantity, StockChangeReason.ORDER);
+                    decreaseStockUseCase.execute(command);
                     successCount.incrementAndGet();
                     totalDecreasedQty.addAndGet(quantity);
                 } catch (Exception e) {
@@ -224,8 +233,10 @@ public class StockConcurrencyTest {
         ProductOption updatedOption = productOptionRepository.findById(savedOption.getId()).orElseThrow();
 
         // 초기 재고(50) - 차감된 수량 = 최종 재고
-        assertThat(updatedOption.getStock()).isEqualTo(50 - totalDecreasedQty.get());
-        assertThat(updatedOption.getStock()).isGreaterThanOrEqualTo(0);
+        assertAll(
+                () -> assertThat(updatedOption.getStock()).isEqualTo(50 - totalDecreasedQty.get()),
+                () -> assertThat(updatedOption.getStock()).isGreaterThanOrEqualTo(0)
+        );
 
         System.out.println("===== 동시성 테스트 4 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");

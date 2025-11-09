@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.concurrency;
 
-import com.hhplus.ecommerce.application.service.CouponService;
+import com.hhplus.ecommerce.application.command.IssueCouponCommand;
+import com.hhplus.ecommerce.application.usecase.coupon.IssueCouponUseCase;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryCouponRepository;
@@ -15,6 +16,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 /**
  * 쿠폰 발급 동시성 테스트
@@ -22,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class CouponConcurrencyTest {
 
-    private CouponService couponService;
+    private IssueCouponUseCase issueCouponUseCase;
     private InMemoryCouponRepository couponRepository;
     private InMemoryUserCouponRepository userCouponRepository;
 
@@ -30,7 +32,7 @@ public class CouponConcurrencyTest {
     void setUp() {
         couponRepository = new InMemoryCouponRepository();
         userCouponRepository = new InMemoryUserCouponRepository();
-        couponService = new CouponService(couponRepository, userCouponRepository);
+        issueCouponUseCase = new IssueCouponUseCase(couponRepository, userCouponRepository);
     }
 
     @Test
@@ -56,7 +58,8 @@ public class CouponConcurrencyTest {
             final long userId = i + 1;
             executorService.submit(() -> {
                 try {
-                    couponService.issueCoupon(userId, savedCoupon.getId());
+                    IssueCouponCommand command = new IssueCouponCommand(userId, savedCoupon.getId());
+                    issueCouponUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -70,11 +73,12 @@ public class CouponConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 100개만 발급되어야 함
-        assertThat(successCount.get()).isEqualTo(100);
-        assertThat(failCount.get()).isEqualTo(0);
-
         Coupon updatedCoupon = couponRepository.findById(savedCoupon.getId()).orElseThrow();
-        assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(100);
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(100),
+                () -> assertThat(failCount.get()).isEqualTo(0),
+                () -> assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(100)
+        );
 
         System.out.println("===== 동시성 테스트 1 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
@@ -106,7 +110,8 @@ public class CouponConcurrencyTest {
             final long userId = i + 1;
             executorService.submit(() -> {
                 try {
-                    couponService.issueCoupon(userId, savedCoupon.getId());
+                    IssueCouponCommand command = new IssueCouponCommand(userId, savedCoupon.getId());
+                    issueCouponUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -120,11 +125,12 @@ public class CouponConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 100개만 발급, 100개는 실패해야 함
-        assertThat(successCount.get()).isEqualTo(100);
-        assertThat(failCount.get()).isEqualTo(100);
-
         Coupon updatedCoupon = couponRepository.findById(savedCoupon.getId()).orElseThrow();
-        assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(100);
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(100),
+                () -> assertThat(failCount.get()).isEqualTo(100),
+                () -> assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(100)
+        );
 
         System.out.println("===== 동시성 테스트 2 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
@@ -157,7 +163,8 @@ public class CouponConcurrencyTest {
             final long userId = i + 1;
             executorService.submit(() -> {
                 try {
-                    UserCoupon userCoupon = couponService.issueCoupon(userId, savedCoupon.getId());
+                    IssueCouponCommand command = new IssueCouponCommand(userId, savedCoupon.getId());
+                    UserCoupon userCoupon = issueCouponUseCase.execute(command);
                     successCount.incrementAndGet();
                     issuedUserIds.add(userCoupon.getUserId());
                 } catch (Exception e) {
@@ -172,15 +179,14 @@ public class CouponConcurrencyTest {
         executorService.shutdown();
 
         // Then - 정확히 50개만 발급되어야 함
-        assertThat(successCount.get()).isEqualTo(50);
-        assertThat(failCount.get()).isEqualTo(50);
-        assertThat(issuedUserIds.size()).isEqualTo(50);
-
         Coupon updatedCoupon = couponRepository.findById(savedCoupon.getId()).orElseThrow();
-        assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(50);
-        
-        // 발급된 쿠폰 수도 정확히 50개여야 함
-        assertThat(userCouponRepository.findAll().size()).isEqualTo(50);
+        assertAll(
+                () -> assertThat(successCount.get()).isEqualTo(50),
+                () -> assertThat(failCount.get()).isEqualTo(50),
+                () -> assertThat(issuedUserIds.size()).isEqualTo(50),
+                () -> assertThat(updatedCoupon.getIssuedQuantity()).isEqualTo(50),
+                () -> assertThat(userCouponRepository.findAll().size()).isEqualTo(50)
+        );
 
         System.out.println("===== 동시성 테스트 3 결과 =====");
         System.out.println("성공: " + successCount.get() + "건");
