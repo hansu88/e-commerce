@@ -1,12 +1,18 @@
 package com.hhplus.ecommerce.presentation.controller;
 
-import com.hhplus.ecommerce.application.service.OrderService;
+import com.hhplus.ecommerce.application.command.CancelOrderCommand;
+import com.hhplus.ecommerce.application.command.CreateOrderCommand;
+import com.hhplus.ecommerce.application.command.PayOrderCommand;
+import com.hhplus.ecommerce.application.usecase.order.CancelOrderUseCase;
+import com.hhplus.ecommerce.application.usecase.order.CreateOrderUseCase;
+import com.hhplus.ecommerce.application.usecase.order.PayOrderUseCase;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderItem;
 import com.hhplus.ecommerce.presentation.dto.request.OrderCreateRequestDto;
 import com.hhplus.ecommerce.presentation.dto.request.OrderPayRequestDto;
 import com.hhplus.ecommerce.presentation.dto.response.OrderPayResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.OrderResponseDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +22,12 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
-
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+    private final CreateOrderUseCase createOrderUseCase;
+    private final PayOrderUseCase payOrderUseCase;
+    private final CancelOrderUseCase cancelOrderUseCase;
 
     @PostMapping
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderCreateRequestDto request) {
@@ -36,7 +41,13 @@ public class OrderController {
                 })
                 .collect(Collectors.toList());
 
-        Order order = orderService.createOrder(request.getUserId(), orderItems, request.getCouponId());
+        CreateOrderCommand command = new CreateOrderCommand(
+                request.getUserId(),
+                orderItems,
+                request.getCouponId()
+        );
+
+        Order order = createOrderUseCase.execute(command);
 
         OrderResponseDto response = new OrderResponseDto(
                 order.getId(),
@@ -52,7 +63,8 @@ public class OrderController {
             @PathVariable Long id,
             @RequestBody OrderPayRequestDto request) {
 
-        Order order = orderService.payOrder(id, request.getPaymentMethod());
+        PayOrderCommand command = new PayOrderCommand(id, request.getPaymentMethod());
+        Order order = payOrderUseCase.execute(command);
 
         OrderPayResponseDto response = new OrderPayResponseDto(order.getId(), order.getStatus().name());
         return ResponseEntity.ok(response);
@@ -60,7 +72,8 @@ public class OrderController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long id) {
-        Order order = orderService.cancelOrder(id);
+        CancelOrderCommand command = new CancelOrderCommand(id);
+        Order order = cancelOrderUseCase.execute(command);
 
         OrderResponseDto response = new OrderResponseDto(
                 order.getId(),
