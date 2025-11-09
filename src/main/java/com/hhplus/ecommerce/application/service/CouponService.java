@@ -14,7 +14,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 쿠폰 발급 및 사용 처리
  * - 동시성 제어 적용 (Coupon ID별 Lock)
  * - 쿠폰 복구 (주문 취소 시)
+ *
+ * @deprecated Use UseCase pattern instead:
+ * - {@link com.hhplus.ecommerce.application.usecase.coupon.IssueCouponUseCase} for issuing coupons
+ * - {@link com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase} for using coupons
+ * - {@link com.hhplus.ecommerce.application.usecase.coupon.RestoreCouponUseCase} for restoring coupons
+ * - {@link com.hhplus.ecommerce.application.usecase.coupon.GetMyCouponsUseCase} for getting my coupons
  */
+@Deprecated
 @Service
 public class CouponService {
     private final CouponRepository couponRepository;
@@ -28,9 +35,6 @@ public class CouponService {
         this.userCouponRepository = userCouponRepository;
     }
 
-    /**
-     * Repository getter (OrderService에서 사용)
-     */
     public CouponRepository getCouponRepository() {
         return couponRepository;
     }
@@ -42,9 +46,6 @@ public class CouponService {
     /**
      * 사용자에게 쿠폰 발급
      * 동시성 제어: Coupon ID별 synchronized 블록 적용
-     * @param userId 사용자 ID
-     * @param couponId 쿠폰 ID
-     * @return 발급된 UserCoupon
      */
     public UserCoupon issueCoupon(Long userId, Long couponId) {
         // Coupon ID별 Lock 객체 획득 (없으면 생성)
@@ -76,7 +77,6 @@ public class CouponService {
 
     /**
      * 쿠폰 사용 처리
-     * @param userCouponId 사용자 쿠폰 ID
      */
     public void useCoupon(Long userCouponId){
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)
@@ -93,8 +93,7 @@ public class CouponService {
 
     /**
      * 쿠폰 복구 (주문 취소 시)
-     * - 사용된 쿠폰을 다시 사용 가능 상태로 변경
-     * @param userCouponId 사용자 쿠폰 ID
+     * 사용된 쿠폰을 다시 사용 가능 상태로 변경
      */
     public void restoreCoupon(Long userCouponId) {
         UserCoupon userCoupon = userCouponRepository.findById(userCouponId)

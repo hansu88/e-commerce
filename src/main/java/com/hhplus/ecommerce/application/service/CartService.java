@@ -8,6 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @deprecated Use UseCase pattern instead:
+ * - {@link com.hhplus.ecommerce.application.usecase.cart.AddCartItemUseCase} for adding cart item
+ * - {@link com.hhplus.ecommerce.application.usecase.cart.GetCartItemsUseCase} for getting cart items
+ * - {@link com.hhplus.ecommerce.application.usecase.cart.DeleteCartItemUseCase} for deleting cart item
+ */
+@Deprecated
 @Service
 public class CartService {
 
@@ -19,9 +26,6 @@ public class CartService {
         this.cartItemRepository = cartItemRepository;
     }
 
-    /**
-     * 장바구니에 아이템 추가
-     */
     public CartItem addCartItem(Long userId, Long productOptionId, Integer quantity) {
         // 사용자의 장바구니 조회 또는 생성
         Cart cart = cartRepository.findByUserId(userId)
@@ -40,9 +44,6 @@ public class CartService {
         return cartItemRepository.save(cartItem);
     }
 
-    /**
-     * 사용자의 장바구니 아이템 조회
-     */
     public List<CartItem> getCartItems(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니가 존재하지 않습니다."));
@@ -50,9 +51,6 @@ public class CartService {
         return cartItemRepository.findByCartId(cart.getId());
     }
 
-    /**
-     * 장바구니 아이템 삭제
-     */
     public void deleteCartItem(Long cartItemId) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("장바구니 아이템을 찾을 수 없습니다."));

@@ -15,6 +15,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @deprecated Use UseCase pattern instead:
+ * - {@link com.hhplus.ecommerce.application.usecase.order.CreateOrderUseCase} for creating orders
+ * - {@link com.hhplus.ecommerce.application.usecase.order.PayOrderUseCase} for payment
+ * - {@link com.hhplus.ecommerce.application.usecase.order.CancelOrderUseCase} for cancellation
+ */
+@Deprecated
 @Service
 public class OrderService {
 

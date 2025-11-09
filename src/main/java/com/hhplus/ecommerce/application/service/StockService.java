@@ -16,7 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 재고 차감/증가
  * - 재고 검증
  * - 동시성 제어 (ProductOption ID별 Lock)
+ *
+ * @deprecated Use UseCase pattern instead:
+ * - {@link com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase} for decreasing stock
+ * - {@link com.hhplus.ecommerce.application.usecase.stock.IncreaseStockUseCase} for increasing stock
+ * - {@link com.hhplus.ecommerce.application.usecase.stock.ValidateStockUseCase} for validating stock
  */
+@Deprecated
 @Service
 public class StockService {
 
@@ -35,9 +41,6 @@ public class StockService {
     /**
      * 재고 차감 (주문 시)
      * 동시성 제어: ProductOption ID별 synchronized 블록 적용
-     * @param productOptionId 상품 옵션 ID
-     * @param quantity 차감할 수량
-     * @param reason 차감 사유
      */
     public void decreaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
         // ProductOption ID별 Lock 객체 획득
@@ -68,9 +71,6 @@ public class StockService {
     /**
      * 재고 증가 (주문 취소, 재입고)
      * 동시성 제어: ProductOption ID별 synchronized 블록 적용
-     * @param productOptionId 상품 옵션 ID
-     * @param quantity 증가할 수량
-     * @param reason 증가 사유
      */
     public void increaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
         // ProductOption ID별 Lock 객체 획득 (없으면 생성)
@@ -92,9 +92,6 @@ public class StockService {
 
     /**
      * 재고 검증만 (차감하지 않음)
-     * @param productOptionId 상품 옵션 ID
-     * @param quantity 필요한 수량
-     * @throws OutOfStockException 재고가 부족할 때
      */
     public void validateStock(Long productOptionId, int quantity) {
         ProductOption option = productOptionRepository.findById(productOptionId)
