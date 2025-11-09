@@ -14,6 +14,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated Use UseCase pattern instead:
+ * - {@link com.hhplus.ecommerce.application.usecase.product.GetProductListUseCase} for getting product list
+ * - {@link com.hhplus.ecommerce.application.usecase.product.GetProductDetailUseCase} for getting product detail
+ * - {@link com.hhplus.ecommerce.application.usecase.product.GetPopularProductsUseCase} for getting popular products
+ */
+@Deprecated
 @Service
 public class ProductService {
 
@@ -21,12 +28,6 @@ public class ProductService {
     private final ProductOptionRepository productOptionRepository;
     private final OrderItemRepository orderItemRepository;
 
-    /**
-     * 전체 상품 조회 (DTO 반환)
-     * - Product → ProductListResponseDto 변환
-     *
-     * @return 전체 상품 목록 DTO
-     */
     public ProductService(ProductRepository productRepository,
                           ProductOptionRepository productOptionRepository,
                           OrderItemRepository orderItemRepository) {
@@ -35,9 +36,6 @@ public class ProductService {
         this.orderItemRepository = orderItemRepository;
     }
 
-    /**
-     * 전체 상품 조회 (DTO 반환)
-     */
     public List<ProductListResponseDto> getProductsDto() {
         return productRepository.findAll().stream()
                 .map(product -> new ProductListResponseDto(
@@ -50,9 +48,6 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 상품 상세 조회 (옵션 포함, DTO 반환)
-     */
     public ProductDetailResponseDto getProductDetailDto(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found: " + productId));
@@ -60,27 +55,23 @@ public class ProductService {
         List<ProductOption> options = productOptionRepository.findByProductId(productId);
 
         List<ProductDetailResponseDto.ProductOptionDto> optionDtos = options.stream()
-                .map(option -> ProductDetailResponseDto.ProductOptionDto.builder()
-                        .id(option.getId())
-                        .color(option.getColor())
-                        .size(option.getSize())
-                        .stock(option.getStock())
-                        .build())
+                .map(option -> new ProductDetailResponseDto.ProductOptionDto(
+                        option.getId(),
+                        option.getColor(),
+                        option.getSize(),
+                        option.getStock()
+                ))
                 .collect(Collectors.toList());
 
-        return ProductDetailResponseDto.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .status(product.getStatus().name())
-                .options(optionDtos)
-                .build();
+        return new ProductDetailResponseDto(
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
+                product.getStatus().name(),
+                optionDtos
+        );
     }
 
-    /**
-     * 인기 상품 조회 (DTO 반환)
-     * 최근 N일간 판매량 기준 상위 상품 조회
-     */
     public List<ProductPopularResponseDto> getPopularProductsDto(int days, int limit) {
         // 1. 최근 N일간의 OrderItem 조회
         java.time.LocalDateTime startDate = java.time.LocalDateTime.now().minusDays(days);

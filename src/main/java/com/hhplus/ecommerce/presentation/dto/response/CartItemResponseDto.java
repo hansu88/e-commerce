@@ -1,20 +1,13 @@
 package com.hhplus.ecommerce.presentation.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public class CartItemResponseDto {
-    private Long cartItemId;
-    private ProductOption productOption;
-    private Integer quantity;
-
-    @Getter
-    @AllArgsConstructor
-    public static class ProductOption {
-        private Long id;
-        private String color;
-        private String size;
-    }
+public record CartItemResponseDto(
+    Long cartItemId,
+    ProductOption productOption,
+    Integer quantity
+) {
+    public record ProductOption(
+        Long id,
+        String color,
+        String size
+    ) {}
 }

@@ -1,11 +1,6 @@
 package com.hhplus.ecommerce.presentation.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public class CouponIssueResponseDto {
-    private Long couponId;
-    private String issuedAt;
-}
+public record CouponIssueResponseDto(
+    Long couponId,
+    String issuedAt
+) {}
