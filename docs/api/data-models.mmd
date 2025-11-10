@@ -1,94 +1,126 @@
 erDiagram
-    USER {
-        INT id PK
-        STRING name
-    }
+    %% =====================================================
+    %% E-Commerce Data Model (JPA Entity 기반)
+    %%
+    %% 설계 원칙:
+    %% - FK 제약조건 없음 (애플리케이션 레벨 관리)
+    %% - 낙관적 락: version 컬럼 (Coupon, ProductOption)
+    %% - 감사 필드: createdAt, updatedAt (모든 테이블)
+    %% =====================================================
 
     PRODUCT {
-        INT id PK
-        STRING name
-        INT price
-        STRING status
-        DATETIME createdAt
+        BIGINT id PK "AUTO_INCREMENT"
+        VARCHAR_100 name "NOT NULL"
+        INT price "NOT NULL"
+        ENUM status "ACTIVE, INACTIVE, SOLD_OUT"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     PRODUCT_OPTION {
-        INT id PK
-        INT productId FK
-        STRING color
-        STRING size
-        INT stock
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT productId "ID 참조 (FK 없음)"
+        VARCHAR_50 color "NOT NULL"
+        VARCHAR_20 size "NOT NULL"
+        INT stock "NOT NULL"
+        BIGINT version "낙관적 락"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     CART {
-        INT id PK
-        INT userId FK
-        DATETIME createdAt
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT userId "UNIQUE, ID 참조 (FK 없음)"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     CART_ITEM {
-        INT id PK
-        INT cartId FK
-        INT productOptionId FK
-        INT quantity
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT cartId "ID 참조 (FK 없음)"
+        BIGINT productOptionId "ID 참조 (FK 없음)"
+        INT quantity "NOT NULL"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     ORDER {
-        INT id PK
-        INT userId FK
-        STRING status
-        INT totalAmount
-        INT discountAmount
-        INT userCouponId
-        DATETIME createdAt
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT userId "ID 참조 (FK 없음)"
+        ENUM status "CREATED, PAID, CANCELLED"
+        INT totalAmount "최종 결제 금액"
+        INT discountAmount "할인 금액"
+        BIGINT userCouponId "사용 쿠폰 (취소 시 복구)"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     ORDER_ITEM {
-        INT id PK
-        INT orderId FK
-        INT productOptionId FK
-        INT quantity
-        INT price
-        DATETIME createdAt2
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT orderId "ID 참조 (FK 없음)"
+        BIGINT productOptionId "ID 참조 (FK 없음)"
+        INT quantity "NOT NULL"
+        INT price "주문 시점 단가"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     COUPON {
-        INT id PK
-        STRING name
-        STRING code
-        INT discountAmount
-        INT totalQuantity
-        INT issuedQuantity
-        DATETIME validFrom
-        DATETIME validUntil
+        BIGINT id PK "AUTO_INCREMENT"
+        VARCHAR_50 code "UNIQUE, NOT NULL"
+        INT discountAmount "NOT NULL"
+        INT totalQuantity "총 발급 가능 수량"
+        INT issuedQuantity "현재 발급된 수량"
+        BIGINT version "낙관적 락"
+        DATETIME_6 validFrom "NOT NULL"
+        DATETIME_6 validUntil "NOT NULL"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     USER_COUPON {
-        INT id PK
-        INT userId FK
-        INT couponId FK
-        DATETIME issuedAt
-        DATETIME usedAt
-        STRING status
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT userId "ID 참조 (FK 없음)"
+        BIGINT couponId "ID 참조 (FK 없음)"
+        DATETIME_6 issuedAt "NOT NULL"
+        DATETIME_6 usedAt
+        ENUM status "AVAILABLE, USED, EXPIRED"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
     STOCK_HISTORY {
-        INT id PK
-        INT productOptionId FK
-        INT changeQty
-        STRING reason
-        DATETIME createdAt
+        BIGINT id PK "AUTO_INCREMENT"
+        BIGINT productOptionId "ID 참조 (FK 없음)"
+        INT changeQty "양수: 증가, 음수: 감소"
+        ENUM reason "ORDER, CANCEL, RESTOCK"
+        DATETIME_6 createdAt "NOT NULL"
+        DATETIME_6 updatedAt
     }
 
-%% 관계 정의
-    USER ||--o{ CART : owns
-    CART ||--o{ CART_ITEM : contains
-    PRODUCT ||--o{ PRODUCT_OPTION : has
-    PRODUCT_OPTION ||--o{ CART_ITEM : referenced_in
-    USER ||--o{ ORDER : places
-    ORDER ||--o{ ORDER_ITEM : contains
-    PRODUCT_OPTION ||--o{ ORDER_ITEM : referenced_in
-    COUPON ||--o{ USER_COUPON : issued_to
-    USER ||--o{ USER_COUPON : owns
-    USER_COUPON ||--o{ ORDER : applied_to
-    PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracked_in
+    %% =====================================================
+    %% 관계 정의 (FK 제약조건 없이 애플리케이션 레벨 관리)
+    %% =====================================================
+    PRODUCT ||--o{ PRODUCT_OPTION : "product_id"
+    PRODUCT_OPTION ||--o{ CART_ITEM : "product_option_id"
+    PRODUCT_OPTION ||--o{ ORDER_ITEM : "product_option_id"
+    PRODUCT_OPTION ||--o{ STOCK_HISTORY : "product_option_id"
+
+    CART ||--o{ CART_ITEM : "cart_id"
+    ORDER ||--o{ ORDER_ITEM : "order_id"
+    COUPON ||--o{ USER_COUPON : "coupon_id"
+
+    ORDER ||--o| USER_COUPON : "user_coupon_id (Optional)"
+
+    %% =====================================================
+    %% 인덱스 정보 (주석)
+    %% =====================================================
+    %% PRODUCT: idx_status_created(status, created_at), idx_name(name)
+    %% PRODUCT_OPTION: idx_product_stock(product_id, stock), idx_product_id(product_id)
+    %% CART: idx_user_id(user_id) UNIQUE
+    %% CART_ITEM: idx_cart_id(cart_id)
+    %% ORDER: idx_user_created(user_id, created_at), idx_status_created(status, created_at)
+    %% ORDER_ITEM: idx_order_id(order_id), idx_option_created(product_option_id, created_at)
+    %% COUPON: idx_code(code) UNIQUE
+    %% USER_COUPON: idx_user_status(user_id, status)
+    %% STOCK_HISTORY: idx_option_created(product_option_id, created_at)
