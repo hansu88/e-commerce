@@ -40,8 +40,4 @@ logging:
     #    실제 값확인하기 위한 작업
     # Hibernate SQL 쿼리 보기
     org.hibernate.SQL: DEBUG
-    # 바인딩된 값 보기
-#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org:
-      hibernate:
-        type: trace
+    org.hibernate.orm.jdbc.bind: TRACE
