@@ -1,11 +1,11 @@
-package com.hhplus.ecommerce.application.command;
+package com.hhplus.ecommerce.application.command.coupon;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class RestoreCouponCommand {
+public class UseCouponCommand {
     private final Long userCouponId;
 
     /**

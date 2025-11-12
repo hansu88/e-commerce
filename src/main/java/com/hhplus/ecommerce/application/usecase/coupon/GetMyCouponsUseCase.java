@@ -1,10 +1,11 @@
 package com.hhplus.ecommerce.application.usecase.coupon;
 
-import com.hhplus.ecommerce.application.command.GetMyCouponsCommand;
+import com.hhplus.ecommerce.application.command.coupon.GetMyCouponsCommand;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class GetMyCouponsUseCase {
 
     private final UserCouponRepository userCouponRepository;
 
+    @Transactional(readOnly = true)
     public List<UserCoupon> execute(GetMyCouponsCommand command) {
         return userCouponRepository.findByUserId(command.getUserId());
     }
