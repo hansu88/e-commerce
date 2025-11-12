@@ -1,12 +1,11 @@
 package com.hhplus.ecommerce.concurrency;
 
-import com.hhplus.ecommerce.application.command.DecreaseStockCommand;
+import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryStockHistoryRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * 재고 차감 동시성 테스트
@@ -22,18 +24,20 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * - 재고 부족 시 예외가 발생하는지 검증
  * - 재고가 절대 음수가 되지 않는지 검증
  */
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StockConcurrencyTest {
 
+    @Autowired
     private DecreaseStockUseCase decreaseStockUseCase;
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryStockHistoryRepository stockHistoryRepository;
 
-    @BeforeEach
-    void setUp() {
-        productOptionRepository = new InMemoryProductOptionRepository();
-        stockHistoryRepository = new InMemoryStockHistoryRepository();
-        decreaseStockUseCase = new DecreaseStockUseCase(productOptionRepository, stockHistoryRepository);
-    }
+    @Autowired
+    private ProductOptionRepository productOptionRepository;
+
+    @Autowired
+    private StockHistoryRepository stockHistoryRepository;
+
+    
 
     @Test
     @DisplayName("동시성 테스트 1: 재고 100개, 동시 요청 100개(각 1개씩) - 정확히 100개 차감")
@@ -48,7 +52,9 @@ public class StockConcurrencyTest {
 
         int threadCount = 100;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
+//        CountDownLatch latch = new CountDownLatch(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(threadCount);
 
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
@@ -57,19 +63,20 @@ public class StockConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
+                    startLatch.await(); // 동시에 시작
                     DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), 1, StockChangeReason.ORDER);
                     decreaseStockUseCase.execute(command);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
                 } finally {
-                    latch.countDown();
+                    doneLatch.countDown();
                 }
             });
         }
 
-        latch.await(10, TimeUnit.SECONDS);
-        executorService.shutdown();
+        startLatch.countDown(); // 모든 스레드 동시에 시작
+        doneLatch.await(30, TimeUnit.SECONDS); // 완료 대기
 
         // Then - 정확히 100개 성공, 0개 실패, 재고 0
         ProductOption updatedOption = productOptionRepository.findById(savedOption.getId()).orElseThrow();
