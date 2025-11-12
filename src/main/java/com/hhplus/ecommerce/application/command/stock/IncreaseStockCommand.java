@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.application.command;
+package com.hhplus.ecommerce.application.command.stock;
 
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import lombok.AllArgsConstructor;
