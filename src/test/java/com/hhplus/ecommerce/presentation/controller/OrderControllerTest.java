@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderStatus;
 import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.*;
+import com.hhplus.ecommerce.infrastructure.persistence.base.*;
 import com.hhplus.ecommerce.presentation.dto.request.OrderCreateRequestDto;
 import com.hhplus.ecommerce.presentation.dto.request.OrderPayRequestDto;
 import org.junit.jupiter.api.DisplayName;
@@ -35,10 +35,10 @@ class OrderControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private InMemoryProductOptionRepository productOptionRepository;
+    private ProductOptionRepository productOptionRepository;
 
     @Autowired
-    private InMemoryOrderRepository orderRepository;
+    private OrderRepository orderRepository;
 
     @Test
     @DisplayName("POST /api/orders - 주문 생성 성공")

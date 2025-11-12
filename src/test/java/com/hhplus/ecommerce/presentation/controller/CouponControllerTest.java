@@ -2,7 +2,7 @@ package com.hhplus.ecommerce.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryCouponRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
 import com.hhplus.ecommerce.presentation.dto.request.CouponIssueRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class CouponControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private InMemoryCouponRepository couponRepository;
+    private CouponRepository couponRepository;
 
     @Test
     @DisplayName("POST /api/coupons/{id}/issue - 쿠폰 발급 성공")
@@ -41,6 +41,7 @@ class CouponControllerTest {
         coupon.setDiscountAmount(5000);
         coupon.setTotalQuantity(100);
         coupon.setIssuedQuantity(0);
+        coupon.setValidFrom(LocalDateTime.now());
         coupon.setValidUntil(LocalDateTime.now().plusDays(30));
         Coupon saved = couponRepository.save(coupon);
 

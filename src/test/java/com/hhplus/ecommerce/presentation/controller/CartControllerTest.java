@@ -3,8 +3,8 @@ package com.hhplus.ecommerce.presentation.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hhplus.ecommerce.domain.cart.Cart;
 import com.hhplus.ecommerce.domain.cart.CartItem;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryCartItemRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryCartRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.CartItemRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.CartRepository;
 import com.hhplus.ecommerce.presentation.dto.request.CartAddRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,10 @@ class CartControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private InMemoryCartRepository cartRepository;
+    private CartRepository cartRepository;
 
     @Autowired
-    private InMemoryCartItemRepository cartItemRepository;
+    private CartItemRepository cartItemRepository;
 
     @Test
     @DisplayName("POST /api/carts - 장바구니 담기 성공")
