@@ -25,11 +25,9 @@ public class IncreaseStockUseCase {
         ProductOption option = productOptionRepository.findById(command.getProductOptionId())
                 .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + command.getProductOptionId()));
 
-        // 재고 증가 (낙관적 락으로 동시성 제어)
         option.setStock(option.getStock() + command.getQuantity());
         productOptionRepository.save(option);
 
-        // StockHistory 기록 (양수로 저장)
         StockHistory history = new StockHistory(command.getProductOptionId(), command.getQuantity(), command.getReason());
         stockHistoryRepository.save(history);
     }
