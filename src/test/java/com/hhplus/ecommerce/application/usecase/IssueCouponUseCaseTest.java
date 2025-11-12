@@ -26,17 +26,15 @@ import org.springframework.test.annotation.DirtiesContext;
 public class IssueCouponUseCaseTest {
 
     @Autowired
-
-
     private IssueCouponUseCase issueCouponUseCase;
-    @Autowired
 
+    @Autowired
     private UseCouponUseCase useCouponUseCase;
-    @Autowired
 
+    @Autowired
     private CouponRepository couponRepository;
-    @Autowired
 
+    @Autowired
     private UserCouponRepository userCouponRepository;
 
 
