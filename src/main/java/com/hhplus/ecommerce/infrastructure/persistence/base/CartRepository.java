@@ -1,31 +1,13 @@
 package com.hhplus.ecommerce.infrastructure.persistence.base;
 
 import com.hhplus.ecommerce.domain.cart.Cart;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
+
 /**
  * 장바구니(Cart) Repository 인터페이스
  */
-public interface CartRepository {
-
-    /**
-     * 장바구니 저장 (데이터 저장)
-     */
-    Cart save(Cart cart);
-
-    /**
-     * ID로 장바구니 조회 (GET /api/carts/{id})
-     */
-    Optional<Cart> findById(Long id);
-
-    /**
-     * 사용자 ID로 장바구니 조회 (GET /api/users/{userId}/cart)
-     */
+public interface CartRepository extends JpaRepository<Cart, Long> {
     Optional<Cart> findByUserId(Long userId);
-
-    /**
-     * 모든 장바구니 조회 (GET /api/carts)
-     */
-    List<Cart> findAll();
 }
