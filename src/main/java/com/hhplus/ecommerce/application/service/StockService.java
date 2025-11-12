@@ -28,9 +28,6 @@ public class StockService {
 
     private final ProductOptionRepository productOptionRepository;
     private final StockHistoryRepository stockHistoryRepository;
-    
-    // ProductOption ID별 Lock 객체 관리
-    private final Map<Long, Object> lockMap = new ConcurrentHashMap<>();
 
     public StockService(ProductOptionRepository productOptionRepository,
                        StockHistoryRepository stockHistoryRepository) {
@@ -40,54 +37,44 @@ public class StockService {
 
     /**
      * 재고 차감 (주문 시)
-     * 동시성 제어: ProductOption ID별 synchronized 블록 적용
+     * 낙관적 락으로 동시성 제어
      */
     public void decreaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
-        // ProductOption ID별 Lock 객체 획득
-        Object lock = lockMap.computeIfAbsent(productOptionId, k -> new Object());
-        
-        synchronized (lock) {
-            ProductOption option = productOptionRepository.findById(productOptionId)
-                    .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + productOptionId));
+        ProductOption option = productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + productOptionId));
 
-            // 재고 부족 검증
-            if (option.getStock() < quantity) {
-                throw new OutOfStockException(
-                        String.format("재고 부족: %s %s (요청: %d, 재고: %d)",
-                                option.getColor(), option.getSize(), quantity, option.getStock())
-                );
-            }
-
-            // 재고 차감
-            option.setStock(option.getStock() - quantity);
-            productOptionRepository.save(option);
-
-            // StockHistory 기록 (음수로 저장)
-            StockHistory history = new StockHistory(productOptionId, -quantity, reason);
-            stockHistoryRepository.save(history);
+        // 재고 부족 검증
+        if (option.getStock() < quantity) {
+            throw new OutOfStockException(
+                    String.format("재고 부족: %s %s (요청: %d, 재고: %d)",
+                            option.getColor(), option.getSize(), quantity, option.getStock())
+            );
         }
+
+        // 재고 차감
+        option.setStock(option.getStock() - quantity);
+        productOptionRepository.save(option);
+
+        // StockHistory 기록 (음수로 저장)
+        StockHistory history = new StockHistory(productOptionId, -quantity, reason);
+        stockHistoryRepository.save(history);
     }
 
     /**
      * 재고 증가 (주문 취소, 재입고)
-     * 동시성 제어: ProductOption ID별 synchronized 블록 적용
+     * 낙관적 락으로 동시성 제어
      */
     public void increaseStock(Long productOptionId, int quantity, StockChangeReason reason) {
-        // ProductOption ID별 Lock 객체 획득 (없으면 생성)
-        Object lock = lockMap.computeIfAbsent(productOptionId, k -> new Object());
-        
-        synchronized (lock) {
-            ProductOption option = productOptionRepository.findById(productOptionId)
-                    .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + productOptionId));
+        ProductOption option = productOptionRepository.findById(productOptionId)
+                .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + productOptionId));
 
-            // 재고 증가
-            option.setStock(option.getStock() + quantity);
-            productOptionRepository.save(option);
+        // 재고 증가
+        option.setStock(option.getStock() + quantity);
+        productOptionRepository.save(option);
 
-            // StockHistory 기록 (양수로 저장)
-            StockHistory history = new StockHistory(productOptionId, quantity, reason);
-            stockHistoryRepository.save(history);
-        }
+        // StockHistory 기록 (양수로 저장)
+        StockHistory history = new StockHistory(productOptionId, quantity, reason);
+        stockHistoryRepository.save(history);
     }
 
     /**

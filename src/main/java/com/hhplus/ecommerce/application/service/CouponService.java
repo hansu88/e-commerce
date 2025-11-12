@@ -26,9 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CouponService {
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
-    
-    // Coupon ID별 Lock 객체 관리
-    private final Map<Long, Object> lockMap = new ConcurrentHashMap<>();
 
     public CouponService(CouponRepository couponRepository, UserCouponRepository userCouponRepository) {
         this.couponRepository = couponRepository;
@@ -45,34 +42,30 @@ public class CouponService {
 
     /**
      * 사용자에게 쿠폰 발급
-     * 동시성 제어: Coupon ID별 synchronized 블록 적용
+     * 낙관적 락으로 동시성 제어
      */
     public UserCoupon issueCoupon(Long userId, Long couponId) {
-        // Coupon ID별 Lock 객체 획득 (없으면 생성)
-        Object lock = lockMap.computeIfAbsent(couponId, k -> new Object());
-        
-        synchronized (lock) {
-            Coupon coupon = couponRepository.findById(couponId)
-                    .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
 
-            // 발급 한도 체크
-            if (coupon.getIssuedQuantity() >= coupon.getTotalQuantity()) {
-                throw new IllegalStateException("쿠폰 발급 한도 초과");
-            }
-
-            // 발급 수량 증가
-            coupon.setIssuedQuantity(coupon.getIssuedQuantity() + 1);
-            couponRepository.save(coupon);
-
-            // UserCoupon 생성 및 저장
-            UserCoupon userCoupon = new UserCoupon();
-            userCoupon.setUserId(userId);
-            userCoupon.setCouponId(couponId);
-            userCoupon.setIssuedAt(LocalDateTime.now());
-            userCoupon.setStatus(UserCouponStatus.AVAILABLE);
-
-            return userCouponRepository.save(userCoupon);
+        // 발급 한도 체크
+        if (coupon.getIssuedQuantity() >= coupon.getTotalQuantity()) {
+            throw new IllegalStateException("쿠폰 발급 한도 초과");
         }
+
+        // 발급 수량 증가
+        coupon.setIssuedQuantity(coupon.getIssuedQuantity() + 1);
+        couponRepository.save(coupon);
+
+        // UserCoupon 생성 및 저장
+        UserCoupon userCoupon = new UserCoupon();
+        userCoupon.setUserId(userId);
+        userCoupon.setCouponId(couponId);
+        userCoupon.setIssuedAt(LocalDateTime.now());
+        userCoupon.setStatus(UserCouponStatus.AVAILABLE);
+        userCoupon.setCreatedAt(LocalDateTime.now());
+
+        return userCouponRepository.save(userCoupon);
     }
 
     /**
