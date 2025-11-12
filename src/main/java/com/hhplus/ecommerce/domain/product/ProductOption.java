@@ -1,45 +1,74 @@
 package com.hhplus.ecommerce.domain.product;
 
-import com.hhplus.ecommerce.domain.stock.StockHistory;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.List;
+
+import java.time.LocalDateTime;
 
 /**
  * 상품 옵션 Entity
  */
+@Entity
+@Table(
+    name = "product_options",
+    indexes = {
+        @Index(name = "idx_product_id", columnList = "product_id")
+    }
+)
 @Getter
 @Setter
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 public class ProductOption {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "product_id", nullable = false)
     private Long productId;
+
+    @Column(nullable = false, length = 50)
     private String color;
+
+    @Column(nullable = false, length = 20)
     private String size;
+
+    @Column(nullable = false)
     private Integer stock;
 
-    private List<StockHistory> stockHistories;
+    @Version
+    private Long version;  // 낙관적 락 (동시성 제어)
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public ProductOption(Long productId, String color, String size, Integer stock) {
         this.productId = productId;
         this.color = color;
         this.size = size;
         this.stock = stock;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    // 재고 차감
-    public void reduceStock(int quantity) {
-        if (stock < quantity) {
-            throw new IllegalStateException("재고 부족: 현재 재고 " + stock);
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
         }
-        stock -= quantity;
+        if (this.updatedAt == null) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
-    // 재고 복원
-    public void restoreStock(int quantity) {
-        stock += quantity;
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
