@@ -45,16 +45,6 @@ public class ProductController {
             @RequestParam(defaultValue = "3") Integer days,
             @RequestParam(defaultValue = "5") Integer limit) {
 
-        if (days <= 0 || days > 30) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponse("INVALID_DAYS", "조회 기간은 1~30 사이여야 합니다."));
-        }
-
-        if (limit <= 0 || limit > 100) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponse("INVALID_LIMIT", "조회 개수는 1~100 사이여야 합니다."));
-        }
-
         GetPopularProductsCommand command = new GetPopularProductsCommand(days, limit);
         List<ProductPopularResponseDto> response = getPopularProductsUseCase.execute(command);
         return ResponseEntity.ok(response);
