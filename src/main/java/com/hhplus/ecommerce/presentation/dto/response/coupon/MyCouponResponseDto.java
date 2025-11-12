@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.presentation.dto.response;
+package com.hhplus.ecommerce.presentation.dto.response.coupon;
 
 public record MyCouponResponseDto(
     Long userCouponId,
