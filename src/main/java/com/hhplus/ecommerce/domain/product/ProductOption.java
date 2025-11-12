@@ -1,22 +1,14 @@
 package com.hhplus.ecommerce.domain.product;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * 상품 옵션 Entity
- */
 @Entity
 @Table(
-    name = "product_options",
-    indexes = {
-        @Index(name = "idx_product_id", columnList = "product_id")
-    }
+        name = "product_options",
+        indexes = @Index(name = "idx_product_id", columnList = "product_id")
 )
 @Getter
 @Setter
@@ -40,7 +32,7 @@ public class ProductOption {
     private Integer stock;
 
     @Version
-    private Long version;  // 낙관적 락 (동시성 제어)
+    private Long version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -48,23 +40,11 @@ public class ProductOption {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public ProductOption(Long productId, String color, String size, Integer stock) {
-        this.productId = productId;
-        this.color = color;
-        this.size = size;
-        this.stock = stock;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
     @PrePersist
     public void prePersist() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-        if (this.updatedAt == null) {
-            this.updatedAt = LocalDateTime.now();
-        }
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) this.createdAt = now;
+        if (this.updatedAt == null) this.updatedAt = now;
     }
 
     @PreUpdate

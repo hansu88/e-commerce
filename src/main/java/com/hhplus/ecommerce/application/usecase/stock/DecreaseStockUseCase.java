@@ -7,6 +7,8 @@ import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionReposit
 import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,31 +23,48 @@ public class DecreaseStockUseCase {
 
     private final ProductOptionRepository productOptionRepository;
     private final StockHistoryRepository stockHistoryRepository;
-    private static final int MAX_RETRIES = 20;  // 추후 retry 가 필요하다고 판단시 작업
+
+    private static final int MAX_RETRIES = 30;
 
     public void execute(DecreaseStockCommand command) {
-        executeInternal(command);
+        int retryCount = 0;
+
+        while (retryCount < MAX_RETRIES) {
+            try {
+                executeInternal(command);
+                return;
+            } catch (OptimisticLockingFailureException e) {
+                retryCount++;
+                try {
+                    Thread.sleep(retryCount * 5L); // 점진적 backoff
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("재고 차감 실패: 인터럽트", ie);
+                }
+            } catch (OutOfStockException e) {
+                throw e; // 재고 부족 즉시 실패
+            }
+        }
+
+        throw new IllegalStateException("재고 차감 실패: 재시도 한도 초과");
     }
 
     @Transactional
     protected void executeInternal(DecreaseStockCommand command) {
         ProductOption option = productOptionRepository.findById(command.getProductOptionId())
-                .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다: " + command.getProductOptionId()));
+                .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다."));
 
-        // 재고 부족 검증
         if (option.getStock() < command.getQuantity()) {
-            throw new OutOfStockException(
-                    String.format("재고 부족: %s %s (요청: %d, 재고: %d)",
-                            option.getColor(), option.getSize(), command.getQuantity(), option.getStock())
-            );
+            throw new OutOfStockException("재고 부족");
         }
 
-        // 재고 차감 (낙관적 락으로 동시성 제어)
+        // 재고 감소 + flush (낙관적 락)
         option.setStock(option.getStock() - command.getQuantity());
-        productOptionRepository.save(option);
+        productOptionRepository.saveAndFlush(option);
 
-        // StockHistory 기록 (음수로 저장)
-        StockHistory history = new StockHistory(command.getProductOptionId(), -command.getQuantity(), command.getReason());
+        // StockHistory 기록
+        StockHistory history = new StockHistory(command.getProductOptionId(),
+                -command.getQuantity(), command.getReason());
         stockHistoryRepository.save(history);
     }
 }
