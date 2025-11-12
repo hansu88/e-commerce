@@ -7,6 +7,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class OrderPayRequestDto {
-    private String status;
     private String paymentMethod;
 }
