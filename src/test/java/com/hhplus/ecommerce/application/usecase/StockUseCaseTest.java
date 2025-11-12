@@ -1,21 +1,22 @@
 package com.hhplus.ecommerce.application.usecase;
 
-import com.hhplus.ecommerce.application.command.DecreaseStockCommand;
-import com.hhplus.ecommerce.application.command.IncreaseStockCommand;
+import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
+import com.hhplus.ecommerce.application.command.stock.IncreaseStockCommand;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.application.usecase.stock.IncreaseStockUseCase;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryStockHistoryRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * 재고 로직 핵심 테스트
@@ -23,20 +24,25 @@ import static org.junit.jupiter.api.Assertions.assertAll;
  * - 재고 부족 예외
  * - 재고 증가 성공
  */
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class StockUseCaseTest {
 
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryStockHistoryRepository stockHistoryRepository;
+    @Autowired
+
+
+    private ProductOptionRepository productOptionRepository;
+    @Autowired
+
+    private StockHistoryRepository stockHistoryRepository;
+    @Autowired
+
     private DecreaseStockUseCase decreaseStockUseCase;
+    @Autowired
+
     private IncreaseStockUseCase increaseStockUseCase;
 
-    @BeforeEach
-    void setUp() {
-        productOptionRepository = new InMemoryProductOptionRepository();
-        stockHistoryRepository = new InMemoryStockHistoryRepository();
-        decreaseStockUseCase = new DecreaseStockUseCase(productOptionRepository, stockHistoryRepository);
-        increaseStockUseCase = new IncreaseStockUseCase(productOptionRepository, stockHistoryRepository);
-    }
+    
 
     @Test
     @DisplayName("재고 차감 성공 - 주문 시 재고가 정상적으로 차감되어야 한다")
