@@ -3,8 +3,8 @@ package com.hhplus.ecommerce.presentation.controller;
 import com.hhplus.ecommerce.domain.product.Product;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.product.ProductStatus;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +26,10 @@ class ProductControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private InMemoryProductRepository productRepository;
+    private ProductRepository productRepository;
 
     @Autowired
-    private InMemoryProductOptionRepository productOptionRepository;
+    private ProductOptionRepository productOptionRepository;
 
     @Test
     @DisplayName("GET /api/products - 상품 목록 조회")
