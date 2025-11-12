@@ -29,17 +29,15 @@ import org.springframework.test.annotation.DirtiesContext;
 class StockUseCaseTest {
 
     @Autowired
-
-
     private ProductOptionRepository productOptionRepository;
-    @Autowired
 
+    @Autowired
     private StockHistoryRepository stockHistoryRepository;
-    @Autowired
 
+    @Autowired
     private DecreaseStockUseCase decreaseStockUseCase;
-    @Autowired
 
+    @Autowired
     private IncreaseStockUseCase increaseStockUseCase;
 
     
