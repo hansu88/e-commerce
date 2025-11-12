@@ -1,32 +1,26 @@
 package com.hhplus.ecommerce.application.usecase;
 
-import com.hhplus.ecommerce.application.command.GetProductDetailCommand;
+import com.hhplus.ecommerce.application.command.product.GetProductDetailCommand;
 import com.hhplus.ecommerce.application.usecase.product.GetProductDetailUseCase;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderItemRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import com.hhplus.ecommerce.presentation.exception.ProductNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class GetProductDetailUseCaseTest {
 
+    @Autowired
     private GetProductDetailUseCase getProductDetailUseCase;
-    private InMemoryProductRepository productRepository;
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryOrderItemRepository orderItemRepository;
-
-    @BeforeEach
-    void setUp() {
-        productRepository = new InMemoryProductRepository();
-        productOptionRepository = new InMemoryProductOptionRepository();
-        orderItemRepository = new InMemoryOrderItemRepository();
-        getProductDetailUseCase = new GetProductDetailUseCase(productRepository, productOptionRepository);
-    }
 
     @Test
     @DisplayName("상품 상세 조회 시 존재하지 않으면 ProductNotFoudException 발생 ")
