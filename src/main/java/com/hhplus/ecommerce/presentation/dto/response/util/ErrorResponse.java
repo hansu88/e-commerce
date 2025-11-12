@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.presentation.dto.response;
+package com.hhplus.ecommerce.presentation.dto.response.util;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
