@@ -120,7 +120,7 @@ public class CreateOrderUseCaseTest {
     @Test
     @DisplayName("결제 시 재고 변경 없이 상태만 PAID")
     void payOrderChangesStatusOnly() {
-        // Given -
+        // Given
         ProductOption option = new ProductOption();
         option.setProductId(1L);
         option.setColor("Red");

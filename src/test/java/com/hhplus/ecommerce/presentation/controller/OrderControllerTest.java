@@ -74,7 +74,7 @@ class OrderControllerTest {
         order.setCreatedAt(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
 
-        OrderPayRequestDto request = new OrderPayRequestDto("PAID", "CARD");
+        OrderPayRequestDto request = new OrderPayRequestDto("PAID");
 
         mockMvc.perform(post("/api/orders/" + savedOrder.getId() + "/pay")
                         .contentType(MediaType.APPLICATION_JSON)
