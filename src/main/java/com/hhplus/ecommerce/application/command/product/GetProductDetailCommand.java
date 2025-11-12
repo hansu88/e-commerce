@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.application.command;
+package com.hhplus.ecommerce.application.command.product;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,8 +13,6 @@ public class GetProductDetailCommand {
      * @throws IllegalArgumentException 유효하지 않은 파라미터가 있을 경우
      */
     public void validate() {
-        if (productId == null) {
-            throw new IllegalArgumentException("productId must not be null");
-        }
+        if (productId == null) throw new IllegalArgumentException("productId must not be null");
     }
 }

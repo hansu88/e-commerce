@@ -1,11 +1,10 @@
 package com.hhplus.ecommerce.presentation.controller;
 
-import com.hhplus.ecommerce.application.command.GetPopularProductsCommand;
-import com.hhplus.ecommerce.application.command.GetProductDetailCommand;
+import com.hhplus.ecommerce.application.command.product.GetPopularProductsCommand;
+import com.hhplus.ecommerce.application.command.product.GetProductDetailCommand;
 import com.hhplus.ecommerce.application.usecase.product.GetPopularProductsUseCase;
 import com.hhplus.ecommerce.application.usecase.product.GetProductDetailUseCase;
 import com.hhplus.ecommerce.application.usecase.product.GetProductListUseCase;
-import com.hhplus.ecommerce.presentation.dto.response.ErrorResponse;
 import com.hhplus.ecommerce.presentation.dto.response.ProductDetailResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.ProductListResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.ProductPopularResponseDto;
@@ -15,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * validate 관련 command클래스추가하여 Exception처리
+ */
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
@@ -32,21 +34,20 @@ public class ProductController {
 
     /** 상품 상세 조회 */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+    public ResponseEntity<ProductDetailResponseDto> getProduct(@PathVariable Long id) {
         GetProductDetailCommand command = new GetProductDetailCommand(id);
-        ProductDetailResponseDto response = getProductDetailUseCase.execute(command);
-        return ResponseEntity.ok(response);
-
+        command.validate();
+        return ResponseEntity.ok(getProductDetailUseCase.execute(command));
     }
 
     /** 인기 상품 조회 */
     @GetMapping("/popular")
-    public ResponseEntity<?> getPopularProducts(
-            @RequestParam(defaultValue = "3") Integer days,
-            @RequestParam(defaultValue = "5") Integer limit) {
+    public ResponseEntity<List<ProductPopularResponseDto>> getPopularProducts(
+            @RequestParam(defaultValue = "3") int days,
+            @RequestParam(defaultValue = "5") int limit) {
 
         GetPopularProductsCommand command = new GetPopularProductsCommand(days, limit);
-        List<ProductPopularResponseDto> response = getPopularProductsUseCase.execute(command);
-        return ResponseEntity.ok(response);
+        command.validate(); 
+        return ResponseEntity.ok(getPopularProductsUseCase.execute(command));
     }
 }
