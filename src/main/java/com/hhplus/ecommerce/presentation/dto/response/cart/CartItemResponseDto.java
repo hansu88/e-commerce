@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.presentation.dto.response;
+package com.hhplus.ecommerce.presentation.dto.response.cart;
 
 public record CartItemResponseDto(
     Long cartItemId,
