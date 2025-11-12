@@ -5,6 +5,7 @@ import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
 import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
+
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.order.Order;
@@ -29,33 +30,57 @@ public class CreateOrderUseCase {
     private final OrderItemRepository orderItemRepository;
     private final DecreaseStockUseCase decreaseStockUseCase;
     private final UseCouponUseCase useCouponUseCase;
+    private final CouponRepository couponRepository;
+    private final UserCouponRepository userCouponRepository;
 
 
     @Transactional
     public Order execute(CreateOrderCommand command) {
         command.validate();
 
-        // 1. 재고 차감
-        for (OrderItem item : command.getOrderItems()) {
-            decreaseStockUseCase.execute(new DecreaseStockCommand(
-                    item.getProductOptionId(), item.getQuantity(), StockChangeReason.ORDER
-            ));
+        // 재고 차감
+        for (OrderItem orderItem : command.getOrderItems()) {
+            DecreaseStockCommand stockCommand = new DecreaseStockCommand(
+                    orderItem.getProductOptionId(),
+                    orderItem.getQuantity(),
+                    StockChangeReason.ORDER
+            );
+            decreaseStockUseCase.execute(stockCommand);
         }
 
-        // 2. 쿠폰 사용 처리
+        // 쿠폰 사용
+        int discountAmount = 0;
         if (command.getUserCouponId() != null) {
-            useCouponUseCase.execute(new UseCouponCommand(command.getUserCouponId()));
+            UserCoupon userCoupon = userCouponRepository.findById(command.getUserCouponId())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰이 존재하지 않습니다."));
+            Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
+                    .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
+            discountAmount = coupon.getDiscountAmount();
+
+            UseCouponCommand couponCommand = new UseCouponCommand(command.getUserCouponId());
+            useCouponUseCase.execute(couponCommand);
         }
 
-        // 3. 주문 생성
+        // 주문 생성
         Order order = new Order();
         order.setUserId(command.getUserId());
         order.setStatus(OrderStatus.CREATED);
-        order.setUserCouponId(command.getUserCouponId());
         order.setCreatedAt(LocalDateTime.now());
+        order.setUserCouponId(command.getUserCouponId());
 
-        int totalAmount = command.getOrderItems().stream().mapToInt(i -> i.getQuantity() * i.getPrice()).sum();
-        order.setTotalAmount(totalAmount); // discount 처리도 필요하면 반영
-        return orderRepository.save(order);
+        int subtotal = command.getOrderItems().stream().mapToInt(i -> i.getQuantity() * i.getPrice()).sum();
+        int finalAmount = Math.max(subtotal - discountAmount, 0);
+
+        order.setTotalAmount(finalAmount);
+        order.setDiscountAmount(discountAmount);
+
+        Order savedOrder = orderRepository.save(order);
+
+        for (OrderItem orderItem : command.getOrderItems()) {
+            orderItem.setOrderId(savedOrder.getId());
+            orderItemRepository.save(orderItem);
+        }
+
+        return savedOrder;
     }
 }

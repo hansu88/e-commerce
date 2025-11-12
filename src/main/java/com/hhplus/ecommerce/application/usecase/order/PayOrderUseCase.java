@@ -16,9 +16,9 @@ public class PayOrderUseCase {
 
     @Transactional
     public Order execute(PayOrderCommand command) {
-        command.validate();
         Order order = orderRepository.findById(command.getOrderId())
-                .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
         order.setStatus(OrderStatus.PAID);
         return orderRepository.save(order);
     }

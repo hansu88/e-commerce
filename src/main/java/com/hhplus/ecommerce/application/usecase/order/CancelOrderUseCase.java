@@ -28,27 +28,30 @@ public class CancelOrderUseCase {
 
     @Transactional
     public Order execute(CancelOrderCommand command) {
-        command.validate();
         Order order = orderRepository.findById(command.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
         if (order.getStatus() == OrderStatus.CANCELLED)
             throw new IllegalStateException("이미 취소된 주문입니다.");
 
-        // 1. 재고 복구
-        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
-        for (OrderItem item : items) {
-            increaseStockUseCase.execute(new IncreaseStockCommand(
-                    item.getProductOptionId(), item.getQuantity(), StockChangeReason.CANCEL
-            ));
+        // 재고 복구
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(command.getOrderId());
+        for (OrderItem orderItem : orderItems) {
+            IncreaseStockCommand stockCommand = new IncreaseStockCommand(
+                    orderItem.getProductOptionId(),
+                    orderItem.getQuantity(),
+                    StockChangeReason.CANCEL
+            );
+            increaseStockUseCase.execute(stockCommand);
         }
 
-        // 2. 쿠폰 복구
+        // 쿠폰 복구
         if (order.getUserCouponId() != null) {
-            restoreCouponUseCase.execute(new RestoreCouponCommand(order.getUserCouponId()));
+            RestoreCouponCommand couponCommand = new RestoreCouponCommand(order.getUserCouponId());
+            restoreCouponUseCase.execute(couponCommand);
         }
 
-        // 3. 주문 상태 변경
+        // 상태 변경
         order.setStatus(OrderStatus.CANCELLED);
         return orderRepository.save(order);
     }
