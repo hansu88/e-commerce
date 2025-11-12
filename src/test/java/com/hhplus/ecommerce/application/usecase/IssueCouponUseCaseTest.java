@@ -1,15 +1,14 @@
 package com.hhplus.ecommerce.application.usecase;
 
-import com.hhplus.ecommerce.application.command.IssueCouponCommand;
-import com.hhplus.ecommerce.application.command.UseCouponCommand;
+import com.hhplus.ecommerce.application.command.coupon.IssueCouponCommand;
+import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
 import com.hhplus.ecommerce.application.usecase.coupon.IssueCouponUseCase;
 import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.coupon.UserCouponStatus;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryCouponRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryUserCouponRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,30 +17,47 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class IssueCouponUseCaseTest {
 
-    private IssueCouponUseCase issueCouponUseCase;
-    private UseCouponUseCase useCouponUseCase;
-    private InMemoryCouponRepository couponRepository;
-    private InMemoryUserCouponRepository userCouponRepository;
+    @Autowired
 
-    @BeforeEach
-    void setUp() {
-        couponRepository = new InMemoryCouponRepository();
-        userCouponRepository = new InMemoryUserCouponRepository();
-        issueCouponUseCase = new IssueCouponUseCase(couponRepository, userCouponRepository);
-        useCouponUseCase = new UseCouponUseCase(userCouponRepository);
+
+    private IssueCouponUseCase issueCouponUseCase;
+    @Autowired
+
+    private UseCouponUseCase useCouponUseCase;
+    @Autowired
+
+    private CouponRepository couponRepository;
+    @Autowired
+
+    private UserCouponRepository userCouponRepository;
+
+
+
+    // Helper method to create a valid coupon with all required fields
+    private Coupon createCoupon(String code, int totalQuantity, int issuedQuantity) {
+        Coupon coupon = new Coupon();
+        coupon.setCode(code);
+        coupon.setDiscountAmount(1000);
+        coupon.setTotalQuantity(totalQuantity);
+        coupon.setIssuedQuantity(issuedQuantity);
+        coupon.setValidFrom(LocalDateTime.now());
+        coupon.setValidUntil(LocalDateTime.now().plusDays(30));
+        return coupon;
     }
 
     @Test
     @DisplayName("쿠폰 정상 발급하기")
     void issueCouponSuccess() {
         // Given - 총 발급 가량 1개인 쿠폰
-        Coupon coupon = new Coupon();
-        coupon.setCode("10PERCENT");
-        coupon.setTotalQuantity(1);
-        coupon.setIssuedQuantity(0);
+        Coupon coupon = createCoupon("10PERCENT", 1, 0);
         couponRepository.save(coupon);
 
         // When - 쿠폰 발급
@@ -65,10 +81,7 @@ public class IssueCouponUseCaseTest {
     @DisplayName("쿠폰 발급 한도 초과 시 예외")
     void issueCouponLimitExceeded() {
         // Given - 총 발급 수량 1개및 이미 발급 수량 1개
-        Coupon coupon = new Coupon();
-        coupon.setCode("10PERCENT");
-        coupon.setTotalQuantity(1);
-        coupon.setIssuedQuantity(1);
+        Coupon coupon = createCoupon("10PERCENT", 1, 1);
         couponRepository.save(coupon);
 
         // When & Then - 쿠폰 한도 초과 에러 발생
@@ -82,10 +95,7 @@ public class IssueCouponUseCaseTest {
     @DisplayName("쿠폰 정상 사용")
     void useCouponSuccess() {
         // Given -  총 발급 수량 1개 존재 , 현재 발급 수량 없음
-        Coupon coupon = new Coupon();
-        coupon.setCode("10PERCENT");
-        coupon.setTotalQuantity(1);
-        coupon.setIssuedQuantity(0);
+        Coupon coupon = createCoupon("10PERCENT", 1, 0);
         couponRepository.save(coupon);
 
         IssueCouponCommand issueCommand = new IssueCouponCommand(1L, coupon.getId());
@@ -107,10 +117,7 @@ public class IssueCouponUseCaseTest {
     @DisplayName("이미 사용된 쿠폰 사용 시 예외")
     void useCouponAlreadyUsed() {
         // Given - 쿠폰 발급 및 사용 진행
-        Coupon coupon = new Coupon();
-        coupon.setCode("10PERCENT");
-        coupon.setTotalQuantity(1);
-        coupon.setIssuedQuantity(0);
+        Coupon coupon = createCoupon("10PERCENT", 1, 0);
         couponRepository.save(coupon);
 
         IssueCouponCommand issueCommand = new IssueCouponCommand(1L, coupon.getId());
