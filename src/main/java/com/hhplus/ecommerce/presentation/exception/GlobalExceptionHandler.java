@@ -1,6 +1,6 @@
 package com.hhplus.ecommerce.presentation.exception;
 
-import com.hhplus.ecommerce.presentation.dto.response.ErrorResponse;
+import com.hhplus.ecommerce.presentation.dto.response.util.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
