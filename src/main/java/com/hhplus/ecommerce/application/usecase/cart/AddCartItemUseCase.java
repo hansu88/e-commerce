@@ -1,12 +1,13 @@
 package com.hhplus.ecommerce.application.usecase.cart;
 
-import com.hhplus.ecommerce.application.command.AddCartItemCommand;
+import com.hhplus.ecommerce.application.command.cart.AddCartItemCommand;
 import com.hhplus.ecommerce.domain.cart.Cart;
 import com.hhplus.ecommerce.domain.cart.CartItem;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CartItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 장바구니에 아이템 추가 UseCase
@@ -18,6 +19,7 @@ public class AddCartItemUseCase {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
 
+    @Transactional
     public CartItem execute(AddCartItemCommand command) {
         // 사용자의 장바구니 조회 또는 생성
         Cart cart = cartRepository.findByUserId(command.getUserId())
