@@ -32,37 +32,16 @@ import org.springframework.test.annotation.DirtiesContext;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class CreateOrderUseCaseTest {
     @Autowired
-
     private CreateOrderUseCase createOrderUseCase;
-    @Autowired
 
+    @Autowired
     private PayOrderUseCase payOrderUseCase;
-    @Autowired
 
-    private DecreaseStockUseCase decreaseStockUseCase;
     @Autowired
-
-    private UseCouponUseCase useCouponUseCase;
-    @Autowired
-
     private ProductOptionRepository productOptionRepository;
-    @Autowired
 
-    private OrderItemRepository orderItemRepository;
     @Autowired
-
     private OrderRepository orderRepository;
-    @Autowired
-
-    private StockHistoryRepository stockHistoryRepository;
-    @Autowired
-
-    private CouponRepository couponRepository;
-    @Autowired
-
-    private UserCouponRepository userCouponRepository;
-
-    
 
     @Test
     @DisplayName("주문 생성 시 재고 차감 테스트")
