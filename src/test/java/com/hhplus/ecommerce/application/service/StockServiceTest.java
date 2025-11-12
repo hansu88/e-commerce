@@ -3,14 +3,17 @@ package com.hhplus.ecommerce.application.service;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryStockHistoryRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * 재고 로직 핵심 테스트
@@ -18,28 +21,26 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * - 재고 부족 예외
  * - 재고 증가 성공
  */
+@SpringBootTest
 class StockServiceTest {
 
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryStockHistoryRepository stockHistoryRepository;
+    @Autowired
+    private ProductOptionRepository productOptionRepository;
+
+    @Autowired
+    private StockHistoryRepository stockHistoryRepository;
+
+    @Autowired
     private StockService stockService;
 
-    @BeforeEach
-    void setUp() {
-        productOptionRepository = new InMemoryProductOptionRepository();
-        stockHistoryRepository = new InMemoryStockHistoryRepository();
-        stockService = new StockService(productOptionRepository, stockHistoryRepository);
-    }
+
 
     @Test
+    @Transactional
     @DisplayName("재고 차감 성공 - 주문 시 재고가 정상적으로 차감되어야 한다")
     void decreaseStockSuccess() {
         // Given - 재고 10개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Black");
-        option.setSize("260");
-        option.setStock(10);
+        ProductOption option = new ProductOption(1L, "Black", "260", 10);
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When - 5개 차감
@@ -51,14 +52,11 @@ class StockServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("재고 부족 예외 - 요청 수량보다 재고가 적으면 예외가 발생해야 한다")
     void decreaseStockOutOfStockThrowsException() {
         // Given - 재고 3개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("White");
-        option.setSize("270");
-        option.setStock(3);
+        ProductOption option = new ProductOption(1L, "White", "270", 3);
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When & Then - 5개 요청 시 예외 발생
@@ -73,14 +71,11 @@ class StockServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("재고 증가 성공 - 주문 취소 시 재고가 정상적으로 증가해야 한다")
     void increaseStockSuccess() {
         // Given - 재고 5개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Blue");
-        option.setSize("260");
-        option.setStock(5);
+        ProductOption option = new ProductOption(1L, "Blue", "260", 5);
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When - 3개 증가 (취소)

@@ -1,31 +1,26 @@
 package com.hhplus.ecommerce.application.service;
 
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderItemRepository;
 import com.hhplus.ecommerce.presentation.exception.ProductNotFoundException;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductRepository;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
+@SpringBootTest
 public class ProductServiceTest {
 
+    @Autowired
     private ProductService productService;
-    private InMemoryProductRepository productRepository;
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryOrderItemRepository orderItemRepository;
 
-    @BeforeEach
-    void setUp() {
-        productRepository = new InMemoryProductRepository();
-        productOptionRepository = new InMemoryProductOptionRepository();
-        orderItemRepository = new InMemoryOrderItemRepository();
-        productService = new ProductService(productRepository, productOptionRepository, orderItemRepository);
-    }
+
+    
 
     @Test
+    @Transactional
     @DisplayName("상품 상세 조회 시 존재하지 않으면 ProductNotFoudException 발생 ")
     void getProductDetailNotFoundExceptio() {
 

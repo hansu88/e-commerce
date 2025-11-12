@@ -3,43 +3,52 @@ package com.hhplus.ecommerce.application.service;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderItem;
 import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderItemRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.OrderRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryOrderRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.memory.InMemoryStockHistoryRepository;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
+@SpringBootTest
 public class OrderServiceTest {
+    @Autowired
+
     private OrderService orderService;
+    @Autowired
+
     private StockService stockService;
+    @Autowired
+
     private CouponService couponService;
-    private InMemoryProductOptionRepository productOptionRepository;
-    private InMemoryOrderItemRepository orderItemRepository;
-    private InMemoryOrderRepository orderRepository;
-    private InMemoryStockHistoryRepository stockHistoryRepository;
+    @Autowired
+
+    private ProductOptionRepository productOptionRepository;
+    @Autowired
+
+    private OrderItemRepository orderItemRepository;
+    @Autowired
+
+    private OrderRepository orderRepository;
+    @Autowired
+
+    private StockHistoryRepository stockHistoryRepository;
 
 
-    @BeforeEach
-    void setUp() {
-        productOptionRepository = new InMemoryProductOptionRepository();
-        stockHistoryRepository = new InMemoryStockHistoryRepository();
-        orderItemRepository = new InMemoryOrderItemRepository();
-        stockService = new StockService(productOptionRepository, stockHistoryRepository);
-        orderRepository = new InMemoryOrderRepository();
-        couponService = Mockito.mock(CouponService.class);
-        orderService = new OrderService(orderRepository, orderItemRepository, stockService, couponService);
-    }
+    
 
     @Test
+    @Transactional
     @DisplayName("주문 생성 시 재고 차감 테스트")
     void createOrderDecreasesStock() {
         // Given - 제품 10개 등록
@@ -70,6 +79,7 @@ public class OrderServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("재고 부족 시 주문 실패")
     void createOrderOutOfStock() {
         // Given - 상품도록 및 상품 개수가 재고 초과
@@ -93,6 +103,7 @@ public class OrderServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("결제 시 재고 변경 없이 상태만 PAID")
     void payOrderChangesStatusOnly() {
 
