@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.presentation.dto.response;
+package com.hhplus.ecommerce.presentation.dto.response.order;
 
 public record OrderPayResponseDto(
     Long orderId,

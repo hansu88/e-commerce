@@ -1,10 +1,10 @@
 package com.hhplus.ecommerce.application.usecase.order;
 
-import com.hhplus.ecommerce.application.command.CreateOrderCommand;
+import com.hhplus.ecommerce.application.command.order.CreateOrderCommand;
 import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
-import com.hhplus.ecommerce.application.command.DecreaseStockCommand;
-import com.hhplus.ecommerce.application.command.UseCouponCommand;
+import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
+import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.order.Order;
@@ -17,9 +17,9 @@ import com.hhplus.ecommerce.infrastructure.persistence.base.OrderRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -29,64 +29,33 @@ public class CreateOrderUseCase {
     private final OrderItemRepository orderItemRepository;
     private final DecreaseStockUseCase decreaseStockUseCase;
     private final UseCouponUseCase useCouponUseCase;
-    private final CouponRepository couponRepository;
-    private final UserCouponRepository userCouponRepository;
 
+
+    @Transactional
     public Order execute(CreateOrderCommand command) {
+        command.validate();
+
         // 1. 재고 차감
-        for (OrderItem orderItem : command.getOrderItems()) {
-            DecreaseStockCommand stockCommand = new DecreaseStockCommand(
-                orderItem.getProductOptionId(),
-                orderItem.getQuantity(),
-                StockChangeReason.ORDER
-            );
-            decreaseStockUseCase.execute(stockCommand);
+        for (OrderItem item : command.getOrderItems()) {
+            decreaseStockUseCase.execute(new DecreaseStockCommand(
+                    item.getProductOptionId(), item.getQuantity(), StockChangeReason.ORDER
+            ));
         }
 
-        // 2. 쿠폰 할인 금액 계산 및 사용
-        int discountAmount = 0;
+        // 2. 쿠폰 사용 처리
         if (command.getUserCouponId() != null) {
-            UserCoupon userCoupon = userCouponRepository.findById(command.getUserCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰이 존재하지 않습니다."));
-
-            Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
-
-            discountAmount = coupon.getDiscountAmount();
-
-            UseCouponCommand couponCommand = new UseCouponCommand(command.getUserCouponId());
-            useCouponUseCase.execute(couponCommand);
+            useCouponUseCase.execute(new UseCouponCommand(command.getUserCouponId()));
         }
 
         // 3. 주문 생성
         Order order = new Order();
         order.setUserId(command.getUserId());
         order.setStatus(OrderStatus.CREATED);
-        order.setCreatedAt(LocalDateTime.now());
         order.setUserCouponId(command.getUserCouponId());
+        order.setCreatedAt(LocalDateTime.now());
 
-        // 4. 총 금액 계산 (할인 적용)
-        int subtotal = command.getOrderItems().stream()
-                .mapToInt(i -> i.getQuantity() * i.getPrice())
-                .sum();
-
-        int finalAmount = subtotal - discountAmount;
-        if (finalAmount < 0) {
-            finalAmount = 0;
-        }
-
-        order.setTotalAmount(finalAmount);
-        order.setDiscountAmount(discountAmount);
-
-        // 5. 주문 저장
-        Order savedOrder = orderRepository.save(order);
-
-        // 6. 주문 아이템 저장
-        for (OrderItem orderItem : command.getOrderItems()) {
-            orderItem.setOrderId(savedOrder.getId());
-            orderItemRepository.save(orderItem);
-        }
-
-        return savedOrder;
+        int totalAmount = command.getOrderItems().stream().mapToInt(i -> i.getQuantity() * i.getPrice()).sum();
+        order.setTotalAmount(totalAmount); // discount 처리도 필요하면 반영
+        return orderRepository.save(order);
     }
 }

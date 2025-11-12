@@ -1,4 +1,4 @@
-package com.hhplus.ecommerce.application.command;
+package com.hhplus.ecommerce.application.command.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,8 +13,6 @@ public class CancelOrderCommand {
      * @throws IllegalArgumentException 유효하지 않은 파라미터가 있을 경우
      */
     public void validate() {
-        if (orderId == null) {
-            throw new IllegalArgumentException("orderId must not be null");
-        }
+        if (orderId == null) throw new IllegalArgumentException("주문 ID는 필수입니다.");
     }
 }
