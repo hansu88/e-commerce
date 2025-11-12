@@ -1,14 +1,15 @@
 package com.hhplus.ecommerce.application.usecase.product;
 
-import com.hhplus.ecommerce.application.command.GetPopularProductsCommand;
+import com.hhplus.ecommerce.application.command.product.GetPopularProductsCommand;
 import com.hhplus.ecommerce.domain.product.Product;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
-import com.hhplus.ecommerce.presentation.dto.response.ProductPopularResponseDto;
+import com.hhplus.ecommerce.presentation.dto.response.product.ProductPopularResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ public class GetPopularProductsUseCase {
     private final ProductOptionRepository productOptionRepository;
     private final OrderItemRepository orderItemRepository;
 
+    @Transactional(readOnly = true)
     public List<ProductPopularResponseDto> execute(GetPopularProductsCommand command) {
         // 1. 최근 N일간의 OrderItem 조회
         LocalDateTime startDate = LocalDateTime.now().minusDays(command.getDays());
