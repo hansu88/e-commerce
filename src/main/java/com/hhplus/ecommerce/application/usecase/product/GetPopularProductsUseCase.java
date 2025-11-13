@@ -1,52 +1,45 @@
 package com.hhplus.ecommerce.application.usecase.product;
 
 import com.hhplus.ecommerce.application.command.product.GetPopularProductsCommand;
+import com.hhplus.ecommerce.domain.product.PopularProduct;
 import com.hhplus.ecommerce.domain.product.Product;
-import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.PopularProductRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import com.hhplus.ecommerce.presentation.dto.response.product.ProductPopularResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 인기 상품 조회 UseCase
- * - 최근 N일간 판매량 기준 상위 상품 조회
+ * 인기 상품 조회 UseCase (개선)
+ * - 집계 테이블(popular_products)을 사용한 고성능 조회
+ * - 최근 N일간의 일별 집계 데이터를 합산하여 인기 상품 반환
  */
 @Component
 @RequiredArgsConstructor
 public class GetPopularProductsUseCase {
 
     private final ProductRepository productRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final OrderItemRepository orderItemRepository;
+    private final PopularProductRepository popularProductRepository;
 
     @Transactional(readOnly = true)
     public List<ProductPopularResponseDto> execute(GetPopularProductsCommand command) {
-        // 1. 최근 N일간의 OrderItem 조회
-        LocalDateTime startDate = LocalDateTime.now().minusDays(command.getDays());
-        List<com.hhplus.ecommerce.domain.order.OrderItem> recentOrderItems = orderItemRepository.findAll().stream()
-                .filter(item -> item.getCreatedAt() != null && item.getCreatedAt().isAfter(startDate))
-                .collect(Collectors.toList());
+        // 1. 최근 N일간의 일별 집계 데이터 조회
+        LocalDate startDate = LocalDate.now().minusDays(command.getDays());
+        List<PopularProduct> recentPopularProducts = popularProductRepository
+                .findRecentByPeriodType(PopularProduct.PeriodType.DAILY, startDate);
 
-        // 2. ProductOption → Product 매핑하여 상품별 판매량 집계
+        // 2. 상품별 판매량 합산
         Map<Long, Integer> productSalesMap = new HashMap<>();
-
-        for (com.hhplus.ecommerce.domain.order.OrderItem item : recentOrderItems) {
-            ProductOption option = productOptionRepository.findById(item.getProductOptionId()).orElse(null);
-            if (option != null) {
-                Long productId = option.getProductId();
-                productSalesMap.put(productId,
-                        productSalesMap.getOrDefault(productId, 0) + item.getQuantity());
-            }
+        for (PopularProduct pp : recentPopularProducts) {
+            productSalesMap.put(
+                    pp.getProductId(),
+                    productSalesMap.getOrDefault(pp.getProductId(), 0) + pp.getSalesCount()
+            );
         }
 
         // 3. 판매량 순으로 정렬 후 상위 limit개 반환
@@ -64,7 +57,7 @@ public class GetPopularProductsUseCase {
                     }
                     return null;
                 })
-                .filter(dto -> dto != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }
