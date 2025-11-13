@@ -60,21 +60,16 @@ public class IssueCouponUseCase {
         Coupon coupon = couponRepository.findById(command.getCouponId())
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
 
-        // 2. 사용자 이미 발급 여부 체크
-        if (userCouponRepository.existsByUserIdAndCouponId(command.getUserId(), coupon.getId())) {
-            throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
-        }
-
-        // 3. 재고 체크
+        // 2. 재고 체크 (중복 발급은 UNIQUE 제약조건으로 처리)
         if (coupon.getIssuedQuantity() >= coupon.getTotalQuantity()) {
             throw new IllegalStateException("쿠폰 발급 한도 초과");
         }
 
-        // 4. 발급 수량 증가 (낙관적 락)
+        // 3. 발급 수량 증가 (낙관적 락)
         coupon.setIssuedQuantity(coupon.getIssuedQuantity() + 1);
         couponRepository.saveAndFlush(coupon); // 즉시 DB 반영 + version 증가
 
-        // 5. UserCoupon 생성
+        // 4. UserCoupon 생성 (UNIQUE 제약조건으로 중복 방지)
         UserCoupon userCoupon = new UserCoupon();
         userCoupon.setUserId(command.getUserId());
         userCoupon.setCouponId(coupon.getId());
