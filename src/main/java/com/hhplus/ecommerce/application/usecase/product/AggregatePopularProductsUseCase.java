@@ -116,15 +116,13 @@ public class AggregatePopularProductsUseCase {
     }
 
     /**
-     * 특정 기간 동안의 상품별 판매량 집계
+     * 특정 기간 동안의 상품별 판매량 집계 (개선)
+     * - 기존: findAll() + 메모리 필터링
+     * - 개선: DB 쿼리로 필터링 (findByCreatedAtBetween)
      */
     private Map<Long, Integer> aggregateSales(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        // 해당 기간의 모든 OrderItem 조회
-        List<OrderItem> orderItems = orderItemRepository.findAll().stream()
-                .filter(item -> item.getCreatedAt() != null
-                        && !item.getCreatedAt().isBefore(startDateTime)
-                        && item.getCreatedAt().isBefore(endDateTime))
-                .toList();
+        // 해당 기간의 OrderItem을 DB 쿼리로 조회 (메모리 필터링 제거)
+        List<OrderItem> orderItems = orderItemRepository.findByCreatedAtBetween(startDateTime, endDateTime);
 
         // ProductOption → Product 매핑하여 상품별 판매량 집계
         Map<Long, Integer> productSalesMap = new HashMap<>();
