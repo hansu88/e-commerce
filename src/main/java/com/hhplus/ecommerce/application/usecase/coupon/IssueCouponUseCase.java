@@ -26,7 +26,7 @@ public class IssueCouponUseCase {
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
 
-    private static final int MAX_RETRIES = 30;
+    private static final int MAX_RETRIES = 100;
 
     public UserCoupon execute(IssueCouponCommand command) {
         int retryCount = 0;
@@ -37,7 +37,7 @@ public class IssueCouponUseCase {
             } catch (ObjectOptimisticLockingFailureException e) {
                 retryCount++;
                 try {
-                    Thread.sleep(retryCount * 5L); // 점진적 back-off
+                    Thread.sleep(retryCount * 2L); // 점진적 back-off (2ms씩 증가)
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("쿠폰 발급 실패: 인터럽트", ie);

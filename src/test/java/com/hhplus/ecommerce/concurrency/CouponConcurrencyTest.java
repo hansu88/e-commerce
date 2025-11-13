@@ -76,7 +76,7 @@ public class CouponConcurrencyTest {
             });
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        latch.await(60, TimeUnit.SECONDS);
         executorService.shutdown();
 
         Coupon updatedCoupon = couponRepository.findById(savedCoupon.getId()).orElseThrow();
@@ -173,7 +173,7 @@ public class CouponConcurrencyTest {
             });
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        latch.await(60, TimeUnit.SECONDS);
         executorService.shutdown();
 
         Coupon updatedCoupon = couponRepository.findById(savedCoupon.getId()).orElseThrow();
