@@ -5,7 +5,7 @@ spring:
   # JPA 활성화 - 실제 MySQL 사용
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.4.81:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: hhplus
     password: hhplus1234
 
