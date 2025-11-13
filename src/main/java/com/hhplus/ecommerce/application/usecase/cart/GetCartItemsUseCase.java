@@ -3,8 +3,10 @@ package com.hhplus.ecommerce.application.usecase.cart;
 import com.hhplus.ecommerce.application.command.cart.GetCartItemsCommand;
 import com.hhplus.ecommerce.domain.cart.Cart;
 import com.hhplus.ecommerce.domain.cart.CartItem;
+import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CartItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CartRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.presentation.dto.response.cart.CartItemResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,7 @@ public class GetCartItemsUseCase {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductOptionRepository productOptionRepository;
 
     @Transactional(readOnly = true)
     public List<CartItemResponseDto> execute(GetCartItemsCommand command) {
@@ -37,10 +40,17 @@ public class GetCartItemsUseCase {
         // CartItem -> CartItemResponseDto 변환
         return cartItems.stream()
                 .map(item -> {
+                    // ProductOption 실제 조회
+                    ProductOption productOption = productOptionRepository.findById(item.getProductOptionId())
+                            .orElse(null);
+
+                    String color = productOption != null ? productOption.getColor() : "Unknown";
+                    String size = productOption != null ? productOption.getSize() : "Unknown";
+
                     var option = new CartItemResponseDto.ProductOption(
-                            item.getProductOptionId(), // ProductOption 엔티티에서 필요한 값 매핑
-                            "color-placeholder",       // 실제 매핑 시 productOptionRepository에서 조회 가능
-                            "size-placeholder"
+                            item.getProductOptionId(),
+                            color,
+                            size
                     );
                     return new CartItemResponseDto(
                             item.getId(),

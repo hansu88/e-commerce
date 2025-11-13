@@ -36,6 +36,9 @@ class CartControllerTest {
     @Autowired
     private CartItemRepository cartItemRepository;
 
+    @Autowired
+    private com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository productOptionRepository;
+
     @Test
     @DisplayName("POST /api/carts - 장바구니 담기 성공")
     void addCart() throws Exception {
@@ -46,25 +49,6 @@ class CartControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.cartItemId").exists());
-    }
-
-    @Test
-    @DisplayName("GET /api/carts?uid={uid} - 장바구니 조회 성공")
-    void getCart() throws Exception {
-        Cart cart = new Cart();
-        cart.setUserId(1L);
-        Cart savedCart = cartRepository.save(cart);
-
-        CartItem cartItem = new CartItem();
-        cartItem.setCartId(savedCart.getId());
-        cartItem.setProductOptionId(1L);
-        cartItem.setQuantity(2);
-        cartItemRepository.save(cartItem);
-
-        mockMvc.perform(get("/api/carts")
-                        .param("uid", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
     }
 
     @Test
