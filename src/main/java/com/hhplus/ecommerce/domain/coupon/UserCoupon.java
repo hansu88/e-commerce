@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
     name = "user_coupons",
     indexes = {
         @Index(name = "idx_user_status", columnList = "user_id, status")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_coupon", columnNames = {"user_id", "coupon_id"})  // 중복 발급 방지
     }
 )
 @Getter
