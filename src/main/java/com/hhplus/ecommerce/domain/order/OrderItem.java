@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @Table(
     name = "order_items",
     indexes = {
-        @Index(name = "idx_order_id", columnList = "order_id")
+        @Index(name = "idx_order_id", columnList = "order_id"),
+        @Index(name = "idx_created_at", columnList = "created_at")  // 집계 쿼리 최적화
     }
 )
 @Getter
