@@ -7,6 +7,7 @@ import com.hhplus.ecommerce.domain.coupon.UserCouponStatus;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,9 @@ public class IssueCouponUseCase {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("쿠폰 발급 실패: 인터럽트", ie);
                 }
+            } catch (DataIntegrityViolationException e) {
+                // UNIQUE 제약조건 위반 (중복 발급)
+                throw new IllegalStateException("이미 발급받은 쿠폰입니다.", e);
             } catch (IllegalStateException e) {
                 // 재고 없음 또는 이미 발급받은 경우 즉시 실패
                 throw e;
@@ -63,7 +67,7 @@ public class IssueCouponUseCase {
 
         // 3. 재고 체크
         if (coupon.getIssuedQuantity() >= coupon.getTotalQuantity()) {
-            throw new IllegalStateException("쿠폰 재고가 모두 소진되었습니다.");
+            throw new IllegalStateException("쿠폰 발급 한도 초과");
         }
 
         // 4. 발급 수량 증가 (낙관적 락)
