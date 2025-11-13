@@ -64,4 +64,30 @@ public class UserCoupon {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * 쿠폰 만료 처리
+     */
+    public void expire() {
+        this.status = UserCouponStatus.EXPIRED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 쿠폰 사용 처리
+     */
+    public void use() {
+        this.status = UserCouponStatus.USED;
+        this.usedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 쿠폰 복구 처리 (주문 취소 시)
+     */
+    public void restore() {
+        this.status = UserCouponStatus.AVAILABLE;
+        this.usedAt = null;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
