@@ -1,10 +1,6 @@
-package com.hhplus.ecommerce.application.usecase;
+package com.hhplus.ecommerce.application.usecase.product;
 
 import com.hhplus.ecommerce.application.command.product.GetProductDetailCommand;
-import com.hhplus.ecommerce.application.usecase.product.GetProductDetailUseCase;
-import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import com.hhplus.ecommerce.presentation.exception.ProductNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

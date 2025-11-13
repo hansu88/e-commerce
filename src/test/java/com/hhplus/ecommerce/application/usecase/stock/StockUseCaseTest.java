@@ -1,9 +1,7 @@
-package com.hhplus.ecommerce.application.usecase;
+package com.hhplus.ecommerce.application.usecase.stock;
 
 import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
 import com.hhplus.ecommerce.application.command.stock.IncreaseStockCommand;
-import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
-import com.hhplus.ecommerce.application.usecase.stock.IncreaseStockUseCase;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;

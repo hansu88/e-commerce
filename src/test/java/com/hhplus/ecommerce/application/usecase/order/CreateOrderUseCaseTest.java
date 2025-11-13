@@ -1,20 +1,12 @@
-package com.hhplus.ecommerce.application.usecase;
+package com.hhplus.ecommerce.application.usecase.order;
 
 import com.hhplus.ecommerce.application.command.order.CreateOrderCommand;
 import com.hhplus.ecommerce.application.command.order.PayOrderCommand;
-import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
-import com.hhplus.ecommerce.application.usecase.order.CreateOrderUseCase;
-import com.hhplus.ecommerce.application.usecase.order.PayOrderUseCase;
-import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderItem;
 import com.hhplus.ecommerce.domain.product.ProductOption;
-import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.OrderRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
-import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

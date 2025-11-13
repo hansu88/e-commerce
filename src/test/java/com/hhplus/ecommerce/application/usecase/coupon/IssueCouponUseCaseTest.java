@@ -1,9 +1,7 @@
-package com.hhplus.ecommerce.application.usecase;
+package com.hhplus.ecommerce.application.usecase.coupon;
 
 import com.hhplus.ecommerce.application.command.coupon.IssueCouponCommand;
 import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
-import com.hhplus.ecommerce.application.usecase.coupon.IssueCouponUseCase;
-import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.coupon.UserCouponStatus;
