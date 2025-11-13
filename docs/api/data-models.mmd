@@ -1,126 +1,99 @@
 erDiagram
-    %% =====================================================
-    %% E-Commerce Data Model (JPA Entity 기반)
-    %%
-    %% 설계 원칙:
-    %% - FK 제약조건 없음 (애플리케이션 레벨 관리)
-    %% - 낙관적 락: version 컬럼 (Coupon, ProductOption)
-    %% - 감사 필드: createdAt, updatedAt (모든 테이블)
-    %% =====================================================
+    PRODUCT ||--o{ PRODUCT_OPTION : has
+    PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracks
+    PRODUCT_OPTION ||--o{ ORDER_ITEM : included_in
+    PRODUCT_OPTION ||--o{ CART_ITEM : included_in
+    COUPON ||--o{ USER_COUPON : issued_to
+    USER_COUPON ||--o{ ORDER : used_in
+    ORDER ||--o{ ORDER_ITEM : contains
+    CART ||--o{ CART_ITEM : contains
 
     PRODUCT {
-        BIGINT id PK "AUTO_INCREMENT"
-        VARCHAR_100 name "NOT NULL"
-        INT price "NOT NULL"
-        ENUM status "ACTIVE, INACTIVE, SOLD_OUT"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
+        BIGINT id PK
+        VARCHAR name
+        INT price
+        VARCHAR status
+        DATETIME created_at
+        DATETIME updated_at
     }
 
     PRODUCT_OPTION {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT productId "ID 참조 (FK 없음)"
-        VARCHAR_50 color "NOT NULL"
-        VARCHAR_20 size "NOT NULL"
-        INT stock "NOT NULL"
-        BIGINT version "낙관적 락"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    CART {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT userId "UNIQUE, ID 참조 (FK 없음)"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    CART_ITEM {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT cartId "ID 참조 (FK 없음)"
-        BIGINT productOptionId "ID 참조 (FK 없음)"
-        INT quantity "NOT NULL"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    ORDER {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT userId "ID 참조 (FK 없음)"
-        ENUM status "CREATED, PAID, CANCELLED"
-        INT totalAmount "최종 결제 금액"
-        INT discountAmount "할인 금액"
-        BIGINT userCouponId "사용 쿠폰 (취소 시 복구)"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    ORDER_ITEM {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT orderId "ID 참조 (FK 없음)"
-        BIGINT productOptionId "ID 참조 (FK 없음)"
-        INT quantity "NOT NULL"
-        INT price "주문 시점 단가"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    COUPON {
-        BIGINT id PK "AUTO_INCREMENT"
-        VARCHAR_50 code "UNIQUE, NOT NULL"
-        INT discountAmount "NOT NULL"
-        INT totalQuantity "총 발급 가능 수량"
-        INT issuedQuantity "현재 발급된 수량"
-        BIGINT version "낙관적 락"
-        DATETIME_6 validFrom "NOT NULL"
-        DATETIME_6 validUntil "NOT NULL"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
-    }
-
-    USER_COUPON {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT userId "ID 참조 (FK 없음)"
-        BIGINT couponId "ID 참조 (FK 없음)"
-        DATETIME_6 issuedAt "NOT NULL"
-        DATETIME_6 usedAt
-        ENUM status "AVAILABLE, USED, EXPIRED"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
+        BIGINT id PK
+        BIGINT product_id FK
+        VARCHAR color
+        VARCHAR size
+        INT stock
+        BIGINT version
+        DATETIME created_at
+        DATETIME updated_at
     }
 
     STOCK_HISTORY {
-        BIGINT id PK "AUTO_INCREMENT"
-        BIGINT productOptionId "ID 참조 (FK 없음)"
-        INT changeQty "양수: 증가, 음수: 감소"
-        ENUM reason "ORDER, CANCEL, RESTOCK"
-        DATETIME_6 createdAt "NOT NULL"
-        DATETIME_6 updatedAt
+        BIGINT id PK
+        BIGINT product_option_id FK
+        INT change_qty
+        VARCHAR reason
+        DATETIME created_at
+        DATETIME updated_at
     }
 
-    %% =====================================================
-    %% 관계 정의 (FK 제약조건 없이 애플리케이션 레벨 관리)
-    %% =====================================================
-    PRODUCT ||--o{ PRODUCT_OPTION : "product_id"
-    PRODUCT_OPTION ||--o{ CART_ITEM : "product_option_id"
-    PRODUCT_OPTION ||--o{ ORDER_ITEM : "product_option_id"
-    PRODUCT_OPTION ||--o{ STOCK_HISTORY : "product_option_id"
+    COUPON {
+        BIGINT id PK
+        VARCHAR code
+        INT discount_amount
+        INT total_quantity
+        INT issued_quantity
+        BIGINT version
+        DATETIME valid_from
+        DATETIME valid_until
+        DATETIME created_at
+        DATETIME updated_at
+    }
 
-    CART ||--o{ CART_ITEM : "cart_id"
-    ORDER ||--o{ ORDER_ITEM : "order_id"
-    COUPON ||--o{ USER_COUPON : "coupon_id"
+    USER_COUPON {
+        BIGINT id PK
+        BIGINT user_id
+        BIGINT coupon_id FK
+        DATETIME issued_at
+        DATETIME used_at
+        VARCHAR status
+        DATETIME created_at
+        DATETIME updated_at
+    }
 
-    ORDER ||--o| USER_COUPON : "user_coupon_id (Optional)"
+    ORDER {
+        BIGINT id PK
+        BIGINT user_id
+        VARCHAR status
+        INT total_amount
+        INT discount_amount
+        BIGINT user_coupon_id FK
+        DATETIME created_at
+        DATETIME updated_at
+    }
 
-    %% =====================================================
-    %% 인덱스 정보 (주석)
-    %% =====================================================
-    %% PRODUCT: idx_status_created(status, created_at), idx_name(name)
-    %% PRODUCT_OPTION: idx_product_stock(product_id, stock), idx_product_id(product_id)
-    %% CART: idx_user_id(user_id) UNIQUE
-    %% CART_ITEM: idx_cart_id(cart_id)
-    %% ORDER: idx_user_created(user_id, created_at), idx_status_created(status, created_at)
-    %% ORDER_ITEM: idx_order_id(order_id), idx_option_created(product_option_id, created_at)
-    %% COUPON: idx_code(code) UNIQUE
-    %% USER_COUPON: idx_user_status(user_id, status)
-    %% STOCK_HISTORY: idx_option_created(product_option_id, created_at)
+    ORDER_ITEM {
+        BIGINT id PK
+        BIGINT order_id FK
+        BIGINT product_option_id FK
+        INT quantity
+        INT price
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    CART {
+        BIGINT id PK
+        BIGINT user_id
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    CART_ITEM {
+        BIGINT id PK
+        BIGINT cart_id FK
+        BIGINT product_option_id FK
+        INT quantity
+        DATETIME created_at
+        DATETIME updated_at
+    }
