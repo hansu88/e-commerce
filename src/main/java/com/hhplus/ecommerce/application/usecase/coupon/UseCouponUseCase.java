@@ -24,12 +24,9 @@ public class UseCouponUseCase {
         UserCoupon userCoupon = userCouponRepository.findById(command.getUserCouponId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰이 존재하지 않습니다."));
 
-        if (userCoupon.getStatus() == UserCouponStatus.USED) {
-            throw new IllegalStateException("이미 사용된 쿠폰입니다.");
-        }
+        // Entity 메서드 사용 (비즈니스 규칙은 Entity에서 검증)
+        userCoupon.use();
 
-        userCoupon.setStatus(UserCouponStatus.USED);
-        userCoupon.setUsedAt(LocalDateTime.now());
         userCouponRepository.save(userCoupon);
     }
 }
