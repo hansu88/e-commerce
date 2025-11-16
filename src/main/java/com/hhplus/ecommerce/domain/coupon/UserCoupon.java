@@ -77,9 +77,17 @@ public class UserCoupon {
     }
 
     /**
-     * 쿠폰 사용 처리
+     *  쿠폰 사용처리
+     *  @throws IllegalStateException 이미 사용된 쿠폰인 경
      */
     public void use() {
+        if (this.status == UserCouponStatus.USED) {
+            throw new IllegalStateException("이미 사용된 쿠폰입니다");
+        }
+        if (this.status == UserCouponStatus.EXPIRED) {
+            throw new IllegalStateException("만료된 쿠폰입니다");
+        }
+
         this.status = UserCouponStatus.USED;
         this.usedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
