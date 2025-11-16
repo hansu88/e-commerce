@@ -5,10 +5,8 @@ import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockHistory;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
-import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,8 +39,9 @@ public class DecreaseStockUseCase {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("재고 차감 실패: 인터럽트", ie);
                 }
-            } catch (OutOfStockException e) {
-                throw e; // 재고 부족 즉시 실패
+            } catch (IllegalArgumentException e) {
+                // 재고 부족, 잘못된 수량 등 비즈니스 규칙 위반 시 즉시 실패
+                throw e; 
             }
         }
 
@@ -54,12 +53,10 @@ public class DecreaseStockUseCase {
         ProductOption option = productOptionRepository.findById(command.getProductOptionId())
                 .orElseThrow(() -> new IllegalArgumentException("상품 옵션을 찾을 수 없습니다."));
 
-        if (option.getStock() < command.getQuantity()) {
-            throw new OutOfStockException("재고 부족");
-        }
+        // Entity 메서드 사용 비즈니스 규칙은 Entity에서 검증
+        option.decreaseStock(command.getQuantity());
 
-        // 재고 감소 + flush (낙관적 락)
-        option.setStock(option.getStock() - command.getQuantity());
+        // 낙관적 락 검증을 위해 flush
         productOptionRepository.saveAndFlush(option);
 
         // StockHistory 기록
