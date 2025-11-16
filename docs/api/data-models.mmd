@@ -1,90 +1,99 @@
 erDiagram
-    USER {
-        INT id PK
-        STRING name
-    }
+    PRODUCT ||--o{ PRODUCT_OPTION : has
+    PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracks
+    PRODUCT_OPTION ||--o{ ORDER_ITEM : included_in
+    PRODUCT_OPTION ||--o{ CART_ITEM : included_in
+    COUPON ||--o{ USER_COUPON : issued_to
+    USER_COUPON ||--o{ ORDER : used_in
+    ORDER ||--o{ ORDER_ITEM : contains
+    CART ||--o{ CART_ITEM : contains
 
     PRODUCT {
-        INT id PK
-        STRING name
+        BIGINT id PK
+        VARCHAR name
         INT price
-        STRING status
-        DATETIME createdAt
+        VARCHAR status
+        DATETIME created_at
+        DATETIME updated_at
     }
 
     PRODUCT_OPTION {
-        INT id PK
-        INT productId FK
-        STRING color
-        STRING size
+        BIGINT id PK
+        BIGINT product_id FK
+        VARCHAR color
+        VARCHAR size
         INT stock
-    }
-
-    CART {
-        INT id PK
-        INT userId FK
-        DATETIME createdAt
-    }
-
-    CART_ITEM {
-        INT id PK
-        INT cartId FK
-        INT productOptionId FK
-        INT quantity
-    }
-
-    ORDER {
-        INT id PK
-        INT userId FK
-        STRING status
-        INT totalAmount
-        DATETIME createdAt
-    }
-
-    ORDER_ITEM {
-        INT id PK
-        INT orderId FK
-        INT productOptionId FK
-        INT quantity
-        INT price
-    }
-
-    COUPON {
-        INT id PK
-        STRING code
-        INT discountAmount
-        INT totalQuantity
-        INT issuedQuantity
-        DATETIME validFrom
-        DATETIME validUntil
-    }
-
-    USER_COUPON {
-        INT id PK
-        INT userId FK
-        INT couponId FK
-        DATETIME issuedAt
-        DATETIME usedAt
-        STRING status
+        BIGINT version
+        DATETIME created_at
+        DATETIME updated_at
     }
 
     STOCK_HISTORY {
-        INT id PK
-        INT productOptionId FK
-        INT changeQty
-        STRING reason
-        DATETIME createdAt
+        BIGINT id PK
+        BIGINT product_option_id FK
+        INT change_qty
+        VARCHAR reason
+        DATETIME created_at
+        DATETIME updated_at
     }
 
-%% 관계 정의
-    USER ||--o{ CART : owns
-    CART ||--o{ CART_ITEM : contains
-    PRODUCT ||--o{ PRODUCT_OPTION : has
-    PRODUCT_OPTION ||--o{ CART_ITEM : referenced_in
-    USER ||--o{ ORDER : places
-    ORDER ||--o{ ORDER_ITEM : contains
-    PRODUCT_OPTION ||--o{ ORDER_ITEM : referenced_in
-    COUPON ||--o{ USER_COUPON : issued_to
-    USER ||--o{ USER_COUPON : owns
-    USER_COUPON ||--o{ ORDER : applied_to
-    PRODUCT_OPTION ||--o{ STOCK_HISTORY : tracked_in
+    COUPON {
+        BIGINT id PK
+        VARCHAR code
+        INT discount_amount
+        INT total_quantity
+        INT issued_quantity
+        BIGINT version
+        DATETIME valid_from
+        DATETIME valid_until
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    USER_COUPON {
+        BIGINT id PK
+        BIGINT user_id
+        BIGINT coupon_id FK
+        DATETIME issued_at
+        DATETIME used_at
+        VARCHAR status
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    ORDER {
+        BIGINT id PK
+        BIGINT user_id
+        VARCHAR status
+        INT total_amount
+        INT discount_amount
+        BIGINT user_coupon_id FK
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    ORDER_ITEM {
+        BIGINT id PK
+        BIGINT order_id FK
+        BIGINT product_option_id FK
+        INT quantity
+        INT price
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    CART {
+        BIGINT id PK
+        BIGINT user_id
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    CART_ITEM {
+        BIGINT id PK
+        BIGINT cart_id FK
+        BIGINT product_option_id FK
+        INT quantity
+        DATETIME created_at
+        DATETIME updated_at
+    }
