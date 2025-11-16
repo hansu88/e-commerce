@@ -30,9 +30,6 @@ public class CreateOrderUseCase {
     private final OrderItemRepository orderItemRepository;
     private final DecreaseStockUseCase decreaseStockUseCase;
     private final UseCouponUseCase useCouponUseCase;
-    private final CouponRepository couponRepository;
-    private final UserCouponRepository userCouponRepository;
-
 
     @Transactional
     public Order execute(CreateOrderCommand command) {
@@ -51,14 +48,8 @@ public class CreateOrderUseCase {
         // 쿠폰 사용
         int discountAmount = 0;
         if (command.getUserCouponId() != null) {
-            UserCoupon userCoupon = userCouponRepository.findById(command.getUserCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰이 존재하지 않습니다."));
-            Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
-                    .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
-            discountAmount = coupon.getDiscountAmount();
-
             UseCouponCommand couponCommand = new UseCouponCommand(command.getUserCouponId());
-            useCouponUseCase.execute(couponCommand);
+            discountAmount = useCouponUseCase.execute(couponCommand);
         }
 
         // 주문 생성

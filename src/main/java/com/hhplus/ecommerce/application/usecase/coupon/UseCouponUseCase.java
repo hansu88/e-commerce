@@ -1,8 +1,10 @@
 package com.hhplus.ecommerce.application.usecase.coupon;
 
 import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
+import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.coupon.UserCouponStatus;
+import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,15 +20,26 @@ import java.time.LocalDateTime;
 public class UseCouponUseCase {
 
     private final UserCouponRepository userCouponRepository;
+    private final CouponRepository couponRepository;
 
+
+    /**
+     * 쿠폰 사용 처리
+     * @return 할인 금액
+     */
     @Transactional
-    public void execute(UseCouponCommand command) {
+    public int execute(UseCouponCommand command) {
         UserCoupon userCoupon = userCouponRepository.findById(command.getUserCouponId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰이 존재하지 않습니다."));
 
+        Coupon coupon = couponRepository.findById(userCoupon.getCouponId())
+                .orElseThrow(() -> new IllegalArgumentException("쿠폰이 존재하지 않습니다."));
+
         // Entity 메서드 사용 (비즈니스 규칙은 Entity에서 검증)
         userCoupon.use();
-
         userCouponRepository.save(userCoupon);
+
+        // 할인 금액 반환
+        return coupon.getDiscountAmount();
     }
 }
