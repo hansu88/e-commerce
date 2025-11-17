@@ -3,10 +3,8 @@ package com.hhplus.ecommerce.application.usecase.order;
 import com.hhplus.ecommerce.application.command.order.CreateOrderCommand;
 import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
-import com.hhplus.ecommerce.application.usecase.point.EarnPointUseCase;
 import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
 import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
-import com.hhplus.ecommerce.application.command.point.EarnPointCommand;
 
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
@@ -32,7 +30,6 @@ public class CreateOrderUseCase {
     private final OrderItemRepository orderItemRepository;
     private final DecreaseStockUseCase decreaseStockUseCase;
     private final UseCouponUseCase useCouponUseCase;
-    private final EarnPointUseCase earnPointUseCase;
 
     @Transactional
     public Order execute(CreateOrderCommand command) {
@@ -73,17 +70,6 @@ public class CreateOrderUseCase {
         for (OrderItem orderItem : command.getOrderItems()) {
             orderItem.setOrderId(savedOrder.getId());
             orderItemRepository.save(orderItem);
-        }
-
-        // 포인트 적립 (주문 금액의 1%)
-        int earnAmount = (int) (finalAmount * 0.01);
-        if (earnAmount > 0) {
-            EarnPointCommand earnCommand = new EarnPointCommand(
-                    command.getUserId(),
-                    earnAmount,
-                    "주문 적립"
-            );
-            earnPointUseCase.execute(earnCommand);
         }
 
         return savedOrder;
