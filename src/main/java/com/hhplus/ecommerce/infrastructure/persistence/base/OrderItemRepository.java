@@ -28,4 +28,26 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime
     );
+
+    /**
+     * 상품별 판매량 집계 (Native SQL 최적화)
+     * - JOIN으로 N+1 문제 해결
+     * - DB에서 GROUP BY 집계 (메모리 집계 제거)
+     * - idx_created_product 복합 인덱스 활용
+     *
+     * @return [product_id, total_quantity]
+     */
+    @Query(value =
+            "SELECT po.product_id, SUM(oi.quantity) as total_quantity " +
+            "FROM order_items oi " +
+            "INNER JOIN product_options po ON oi.product_option_id = po.id " +
+            "WHERE oi.created_at >= :startDateTime " +
+            "  AND oi.created_at < :endDateTime " +
+            "GROUP BY po.product_id " +
+            "ORDER BY total_quantity DESC",
+            nativeQuery = true)
+    List<Object[]> aggregateProductSalesByPeriod(
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime
+    );
 }
