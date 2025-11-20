@@ -11,7 +11,13 @@ import java.time.LocalDateTime;
  * 재고 이력 Entity
  */
 @Entity
-@Table(name = "stock_histories")
+@Table(
+    name = "stock_histories",
+    indexes = {
+        @Index(name = "idx_option_created",
+               columnList = "product_option_id, created_at")
+    }
+)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

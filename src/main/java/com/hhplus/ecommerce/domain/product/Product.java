@@ -12,7 +12,12 @@ import java.time.LocalDateTime;
  * 상품 Entity
  */
 @Entity
-@Table(name = "products")
+@Table(
+    name = "products",
+    indexes = {
+        @Index(name = "idx_status", columnList = "status")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor

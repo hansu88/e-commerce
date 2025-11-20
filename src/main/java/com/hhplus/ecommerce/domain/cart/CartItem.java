@@ -16,6 +16,12 @@ import java.time.LocalDateTime;
     name = "cart_items",
     indexes = {
         @Index(name = "idx_cart_id", columnList = "cart_id")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_cart_product",
+            columnNames = {"cart_id", "product_option_id"}
+        )
     }
 )
 @Getter
