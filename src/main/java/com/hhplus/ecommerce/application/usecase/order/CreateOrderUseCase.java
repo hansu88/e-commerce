@@ -67,10 +67,9 @@ public class CreateOrderUseCase {
 
         Order savedOrder = orderRepository.save(order);
 
-        for (OrderItem orderItem : command.getOrderItems()) {
-            orderItem.setOrderId(savedOrder.getId());
-            orderItemRepository.save(orderItem);
-        }
+        // OrderItem Batch Insert (N번 INSERT → 1번 Batch INSERT)
+        command.getOrderItems().forEach(item -> item.setOrderId(savedOrder.getId()));
+        orderItemRepository.saveAll(command.getOrderItems());
 
         return savedOrder;
     }

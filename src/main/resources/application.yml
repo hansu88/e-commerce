@@ -21,6 +21,11 @@ spring:
         format_sql: true
         highlight_sql: true
         use_sql_comments: false
+        # Batch Insert/Update 설정
+        jdbc:
+          batch_size: 50              # 한 번에 50개씩 Batch 처리
+        order_inserts: true            # INSERT 순서 보장 (Batch 효율)
+        order_updates: true            # UPDATE 순서 보장 (Batch 효율)
 
 
   sql:
