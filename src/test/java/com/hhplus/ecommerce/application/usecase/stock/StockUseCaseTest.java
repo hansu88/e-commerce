@@ -44,11 +44,12 @@ class StockUseCaseTest {
     @DisplayName("재고 차감 성공 - 주문 시 재고가 정상적으로 차감되어야 한다")
     void decreaseStockSuccess() {
         // Given - 재고 10개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Black");
-        option.setSize("260");
-        option.setStock(10);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Black")
+                .size("260")
+                .stock(10)
+                .build();
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When - 5개 차감
@@ -64,18 +65,19 @@ class StockUseCaseTest {
     @DisplayName("재고 부족 예외 - 요청 수량보다 재고가 적으면 예외가 발생해야 한다")
     void decreaseStockOutOfStockThrowsException() {
         // Given - 재고 3개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("White");
-        option.setSize("270");
-        option.setStock(3);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("White")
+                .size("270")
+                .stock(3)
+                .build();
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When & Then - 5개 요청 시 예외 발생
         DecreaseStockCommand command = new DecreaseStockCommand(savedOption.getId(), 5, StockChangeReason.ORDER);
         assertThatThrownBy(() -> decreaseStockUseCase.execute(command))
                 .isInstanceOf(OutOfStockException.class)
-                .hasMessageContaining("재고 부족");
+                .hasMessageContaining("재고가 부족합니다");
 
         // 재고는 변경되지 않음
         ProductOption result = productOptionRepository.findById(savedOption.getId()).orElseThrow();
@@ -86,11 +88,12 @@ class StockUseCaseTest {
     @DisplayName("재고 증가 성공 - 주문 취소 시 재고가 정상적으로 증가해야 한다")
     void increaseStockSuccess() {
         // Given - 재고 5개인 상품 옵션
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Blue");
-        option.setSize("260");
-        option.setStock(5);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Blue")
+                .size("260")
+                .stock(5)
+                .build();
         ProductOption savedOption = productOptionRepository.save(option);
 
         // When - 3개 증가 (취소)

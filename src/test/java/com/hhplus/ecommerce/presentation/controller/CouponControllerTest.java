@@ -36,13 +36,14 @@ class CouponControllerTest {
     @Test
     @DisplayName("POST /api/coupons/{id}/issue - 쿠폰 발급 성공")
     void issueCoupon() throws Exception {
-        Coupon coupon = new Coupon();
-        coupon.setCode("TESTCOUPON");
-        coupon.setDiscountAmount(5000);
-        coupon.setTotalQuantity(100);
-        coupon.setIssuedQuantity(0);
-        coupon.setValidFrom(LocalDateTime.now());
-        coupon.setValidUntil(LocalDateTime.now().plusDays(30));
+        Coupon coupon = Coupon.builder()
+                .code("TESTCOUPON")
+                .discountAmount(5000)
+                .totalQuantity(100)
+                .issuedQuantity(0)
+                .validFrom(LocalDateTime.now())
+                .validUntil(LocalDateTime.now().plusDays(30))
+                .build();
         Coupon saved = couponRepository.save(coupon);
 
         CouponIssueRequestDto request = new CouponIssueRequestDto(1L);

@@ -146,12 +146,7 @@ class GetPopularProductsUseCaseTest {
     // === Helper Methods ===
 
     private Product createProduct(String name, int price) {
-        Product product = new Product();
-        product.setName(name);
-        product.setPrice(price);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        Product product = new Product(name, price, ProductStatus.ACTIVE);
         return productRepository.save(product);
     }
 

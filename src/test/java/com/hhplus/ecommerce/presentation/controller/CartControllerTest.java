@@ -54,14 +54,16 @@ class CartControllerTest {
     @Test
     @DisplayName("DELETE /api/carts/{id} - 장바구니 항목 삭제 성공")
     void deleteCartItem() throws Exception {
-        Cart cart = new Cart();
-        cart.setUserId(1L);
+        Cart cart = Cart.builder()
+                .userId(1L)
+                .build();
         Cart savedCart = cartRepository.save(cart);
 
-        CartItem cartItem = new CartItem();
-        cartItem.setCartId(savedCart.getId());
-        cartItem.setProductOptionId(1L);
-        cartItem.setQuantity(2);
+        CartItem cartItem = CartItem.builder()
+                .cartId(savedCart.getId())
+                .productOptionId(1L)
+                .quantity(2)
+                .build();
         CartItem savedItem = cartItemRepository.save(cartItem);
 
         mockMvc.perform(delete("/api/carts/" + savedItem.getId()))

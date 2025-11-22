@@ -39,14 +39,14 @@ public class IssueCouponUseCaseTest {
 
     // Helper method to create a valid coupon with all required fields
     private Coupon createCoupon(String code, int totalQuantity, int issuedQuantity) {
-        Coupon coupon = new Coupon();
-        coupon.setCode(code);
-        coupon.setDiscountAmount(1000);
-        coupon.setTotalQuantity(totalQuantity);
-        coupon.setIssuedQuantity(issuedQuantity);
-        coupon.setValidFrom(LocalDateTime.now());
-        coupon.setValidUntil(LocalDateTime.now().plusDays(30));
-        return coupon;
+        return Coupon.builder()
+                .code(code)
+                .discountAmount(1000)
+                .totalQuantity(totalQuantity)
+                .issuedQuantity(issuedQuantity)
+                .validFrom(LocalDateTime.now())
+                .validUntil(LocalDateTime.now().plusDays(30))
+                .build();
     }
 
     @Test

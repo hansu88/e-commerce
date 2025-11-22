@@ -112,10 +112,11 @@ public class ECommerceIntegrationTest {
 
         // When & Then 5 - 주문 생성 (쿠폰 없이)
         List<OrderItem> orderItems = new ArrayList<>();
-        OrderItem orderItem = new OrderItem();
-        orderItem.setProductOptionId(option.getId());
-        orderItem.setQuantity(2);
-        orderItem.setPrice(10000);
+        OrderItem orderItem = OrderItem.builder()
+                .productOptionId(option.getId())
+                .quantity(2)
+                .price(10000)
+                .build();
         orderItems.add(orderItem);
 
         CreateOrderCommand orderCommand = new CreateOrderCommand(userId, orderItems, null);
@@ -157,10 +158,11 @@ public class ECommerceIntegrationTest {
 
         // When & Then 3 - 주문 생성 (쿠폰 사용)
         List<OrderItem> orderItems = new ArrayList<>();
-        OrderItem orderItem = new OrderItem();
-        orderItem.setProductOptionId(option.getId());
-        orderItem.setQuantity(1);
-        orderItem.setPrice(50000);
+        OrderItem orderItem = OrderItem.builder()
+                .productOptionId(option.getId())
+                .quantity(1)
+                .price(50000)
+                .build();
         orderItems.add(orderItem);
 
         CreateOrderCommand orderCommand = new CreateOrderCommand(userId, orderItems, userCoupon.getId());
@@ -195,16 +197,18 @@ public class ECommerceIntegrationTest {
 
         // When - 주문 생성
         List<OrderItem> orderItems = new ArrayList<>();
-        OrderItem item1 = new OrderItem();
-        item1.setProductOptionId(option1.getId());
-        item1.setQuantity(2);
-        item1.setPrice(30000);
+        OrderItem item1 = OrderItem.builder()
+                .productOptionId(option1.getId())
+                .quantity(2)
+                .price(30000)
+                .build();
         orderItems.add(item1);
 
-        OrderItem item2 = new OrderItem();
-        item2.setProductOptionId(option2.getId());
-        item2.setQuantity(3);
-        item2.setPrice(30000);
+        OrderItem item2 = OrderItem.builder()
+                .productOptionId(option2.getId())
+                .quantity(3)
+                .price(30000)
+                .build();
         orderItems.add(item2);
 
         CreateOrderCommand orderCommand = new CreateOrderCommand(userId, orderItems, null);
@@ -233,22 +237,24 @@ public class ECommerceIntegrationTest {
     }
 
     private ProductOption createProductOption(Long productId, String color, String size, int stock) {
-        ProductOption option = new ProductOption();
-        option.setProductId(productId);
-        option.setColor(color);
-        option.setSize(size);
-        option.setStock(stock);
+        ProductOption option = ProductOption.builder()
+                .productId(productId)
+                .color(color)
+                .size(size)
+                .stock(stock)
+                .build();
         return productOptionRepository.save(option);
     }
 
     private Coupon createCoupon(String code, int discountAmount, int totalQuantity, int issuedQuantity) {
-        Coupon coupon = new Coupon();
-        coupon.setCode(code);
-        coupon.setDiscountAmount(discountAmount);
-        coupon.setTotalQuantity(totalQuantity);
-        coupon.setIssuedQuantity(issuedQuantity);
-        coupon.setValidFrom(LocalDateTime.now());
-        coupon.setValidUntil(LocalDateTime.now().plusDays(30));
+        Coupon coupon = Coupon.builder()
+                .code(code)
+                .discountAmount(discountAmount)
+                .totalQuantity(totalQuantity)
+                .issuedQuantity(issuedQuantity)
+                .validFrom(LocalDateTime.now())
+                .validUntil(LocalDateTime.now().plusDays(30))
+                .build();
         return couponRepository.save(coupon);
     }
 }

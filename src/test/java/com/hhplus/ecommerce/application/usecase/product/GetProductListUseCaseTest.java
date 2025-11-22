@@ -112,23 +112,17 @@ class GetProductListUseCaseTest {
     // === Helper Methods ===
 
     private Product createProduct(String name, int price) {
-        Product product = new Product();
-        product.setName(name);
-        product.setPrice(price);
-        product.setStatus(ProductStatus.ACTIVE);
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
+        Product product = new Product(name, price, ProductStatus.ACTIVE);
         return productRepository.save(product);
     }
 
     private ProductOption createProductOption(Long productId, String color, String size, int stock) {
-        ProductOption option = new ProductOption();
-        option.setProductId(productId);
-        option.setColor(color);
-        option.setSize(size);
-        option.setStock(stock);
-        option.setCreatedAt(LocalDateTime.now());
-        option.setUpdatedAt(LocalDateTime.now());
+        ProductOption option = ProductOption.builder()
+                .productId(productId)
+                .color(color)
+                .size(size)
+                .stock(stock)
+                .build();
         return productOptionRepository.save(option);
     }
 }

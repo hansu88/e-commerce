@@ -128,26 +128,24 @@ class ExpireUserCouponsUseCaseTest {
 
     private Coupon createCoupon(String code, int discountAmount,
                                  LocalDateTime validFrom, LocalDateTime validUntil) {
-        Coupon coupon = new Coupon();
-        coupon.setCode(code);
-        coupon.setDiscountAmount(discountAmount);
-        coupon.setTotalQuantity(100);
-        coupon.setIssuedQuantity(0);
-        coupon.setValidFrom(validFrom);
-        coupon.setValidUntil(validUntil);
-        coupon.setCreatedAt(LocalDateTime.now());
-        coupon.setUpdatedAt(LocalDateTime.now());
+        Coupon coupon = Coupon.builder()
+                .code(code)
+                .discountAmount(discountAmount)
+                .totalQuantity(100)
+                .issuedQuantity(0)
+                .validFrom(validFrom)
+                .validUntil(validUntil)
+                .build();
         return couponRepository.save(coupon);
     }
 
     private UserCoupon createUserCoupon(Long userId, Long couponId, UserCouponStatus status) {
-        UserCoupon userCoupon = new UserCoupon();
-        userCoupon.setUserId(userId);
-        userCoupon.setCouponId(couponId);
-        userCoupon.setIssuedAt(LocalDateTime.now());
-        userCoupon.setStatus(status);
-        userCoupon.setCreatedAt(LocalDateTime.now());
-        userCoupon.setUpdatedAt(LocalDateTime.now());
+        UserCoupon userCoupon = UserCoupon.builder()
+                .userId(userId)
+                .couponId(couponId)
+                .issuedAt(LocalDateTime.now())
+                .status(status)
+                .build();
         return userCouponRepository.save(userCoupon);
     }
 }

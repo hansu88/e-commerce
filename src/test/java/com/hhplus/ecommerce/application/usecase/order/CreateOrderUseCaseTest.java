@@ -39,17 +39,19 @@ public class CreateOrderUseCaseTest {
     @DisplayName("주문 생성 시 재고 차감 테스트")
     void createOrderDecreasesStock() {
         // Given - 제품 10개 등록
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Red");
-        option.setSize("M");
-        option.setStock(10);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Red")
+                .size("M")
+                .stock(10)
+                .build();
         productOptionRepository.save(option);
 
-        OrderItem item = new OrderItem();
-        item.setProductOptionId(option.getId());
-        item.setQuantity(3);
-        item.setPrice(10000);
+        OrderItem item = OrderItem.builder()
+                .productOptionId(option.getId())
+                .quantity(3)
+                .price(10000)
+                .build();
 
         CreateOrderCommand command = new CreateOrderCommand(1L, List.of(item), null);
 
@@ -69,17 +71,19 @@ public class CreateOrderUseCaseTest {
     @DisplayName("재고 부족 시 주문 실패")
     void createOrderOutOfStock() {
         // Given - 상품도록 및 상품 개수가 재고 초과
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Red");
-        option.setSize("M");
-        option.setStock(2);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Red")
+                .size("M")
+                .stock(2)
+                .build();
         productOptionRepository.save(option);
 
-        OrderItem item = new OrderItem();
-        item.setProductOptionId(option.getId());
-        item.setQuantity(5);
-        item.setPrice(10000);
+        OrderItem item = OrderItem.builder()
+                .productOptionId(option.getId())
+                .quantity(5)
+                .price(10000)
+                .build();
 
         CreateOrderCommand command = new CreateOrderCommand(1L, List.of(item), null);
 
@@ -92,17 +96,19 @@ public class CreateOrderUseCaseTest {
     @DisplayName("결제 시 재고 변경 없이 상태만 PAID")
     void payOrderChangesStatusOnly() {
         // Given
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Red");
-        option.setSize("M");
-        option.setStock(10);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Red")
+                .size("M")
+                .stock(10)
+                .build();
         productOptionRepository.save(option);
 
-        OrderItem item = new OrderItem();
-        item.setProductOptionId(option.getId());
-        item.setQuantity(3);
-        item.setPrice(10000);
+        OrderItem item = OrderItem.builder()
+                .productOptionId(option.getId())
+                .quantity(3)
+                .price(10000)
+                .build();
 
         CreateOrderCommand createCommand = new CreateOrderCommand(1L, List.of(item), null);
         Order order = createOrderUseCase.execute(createCommand);

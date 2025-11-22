@@ -34,10 +34,7 @@ class ProductControllerTest {
     @Test
     @DisplayName("GET /api/products - 상품 목록 조회")
     void getProducts() throws Exception {
-        Product product = new Product();
-        product.setName("테스트 상품");
-        product.setPrice(10000);
-        product.setStatus(ProductStatus.ACTIVE);
+        Product product = new Product("테스트 상품", 10000, ProductStatus.ACTIVE);
         productRepository.save(product);
 
         mockMvc.perform(get("/api/products"))
@@ -48,17 +45,15 @@ class ProductControllerTest {
     @Test
     @DisplayName("GET /api/products/{id} - 상품 상세 조회")
     void getProduct() throws Exception {
-        Product product = new Product();
-        product.setName("테스트 상품");
-        product.setPrice(10000);
-        product.setStatus(ProductStatus.ACTIVE);
+        Product product = new Product("테스트 상품", 10000, ProductStatus.ACTIVE);
         Product saved = productRepository.save(product);
 
-        ProductOption option = new ProductOption();
-        option.setProductId(saved.getId());
-        option.setColor("Black");
-        option.setSize("M");
-        option.setStock(100);
+        ProductOption option = ProductOption.builder()
+                .productId(saved.getId())
+                .color("Black")
+                .size("M")
+                .stock(100)
+                .build();
         productOptionRepository.save(option);
 
         mockMvc.perform(get("/api/products/" + saved.getId()))

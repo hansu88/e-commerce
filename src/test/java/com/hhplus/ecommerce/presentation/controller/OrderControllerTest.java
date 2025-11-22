@@ -43,11 +43,12 @@ class OrderControllerTest {
     @Test
     @DisplayName("POST /api/orders - 주문 생성 성공")
     void createOrder() throws Exception {
-        ProductOption option = new ProductOption();
-        option.setProductId(1L);
-        option.setColor("Black");
-        option.setSize("M");
-        option.setStock(100);
+        ProductOption option = ProductOption.builder()
+                .productId(1L)
+                .color("Black")
+                .size("M")
+                .stock(100)
+                .build();
         ProductOption saved = productOptionRepository.save(option);
 
         OrderCreateRequestDto.CartItemInfo cartItem = new OrderCreateRequestDto.CartItemInfo(
@@ -66,12 +67,12 @@ class OrderControllerTest {
     @Test
     @DisplayName("POST /api/orders/{id}/pay - 주문 결제 성공")
     void payOrder() throws Exception {
-        Order order = new Order();
-        order.setUserId(1L);
-        order.setStatus(OrderStatus.CREATED);
-        order.setTotalAmount(20000);
-        order.setDiscountAmount(0);
-        order.setCreatedAt(LocalDateTime.now());
+        Order order = Order.builder()
+                .userId(1L)
+                .status(OrderStatus.CREATED)
+                .totalAmount(20000)
+                .discountAmount(0)
+                .build();
         Order savedOrder = orderRepository.save(order);
 
         OrderPayRequestDto request = new OrderPayRequestDto("PAID");
