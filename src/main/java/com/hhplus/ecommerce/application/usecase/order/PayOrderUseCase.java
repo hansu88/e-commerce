@@ -19,7 +19,8 @@ public class PayOrderUseCase {
         Order order = orderRepository.findById(command.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        order.setStatus(OrderStatus.PAID);
+        // 비즈니스 메서드 사용
+        order.pay();
         return orderRepository.save(order);
     }
 }

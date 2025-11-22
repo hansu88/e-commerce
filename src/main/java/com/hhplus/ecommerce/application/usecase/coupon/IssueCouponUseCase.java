@@ -65,16 +65,17 @@ public class IssueCouponUseCase {
             throw new IllegalStateException("쿠폰 발급 한도 초과");
         }
 
-        // 3. 발급 수량 증가 (낙관적 락)
-        coupon.setIssuedQuantity(coupon.getIssuedQuantity() + 1);
+        // 3. 발급 수량 증가 (낙관적 락) - 비즈니스 메서드 사용
+        coupon.increaseIssuedQuantity();
         couponRepository.saveAndFlush(coupon); // 즉시 DB 반영 + version 증가
 
         // 4. UserCoupon 생성 (UNIQUE 제약조건으로 중복 방지)
-        UserCoupon userCoupon = new UserCoupon();
-        userCoupon.setUserId(command.getUserId());
-        userCoupon.setCouponId(coupon.getId());
-        userCoupon.setIssuedAt(LocalDateTime.now());
-        userCoupon.setStatus(UserCouponStatus.AVAILABLE);
+        UserCoupon userCoupon = UserCoupon.builder()
+                .userId(command.getUserId())
+                .couponId(coupon.getId())
+                .issuedAt(LocalDateTime.now())
+                .status(UserCouponStatus.AVAILABLE)
+                .build();
 
         return userCouponRepository.save(userCoupon);
     }

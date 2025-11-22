@@ -26,8 +26,8 @@ public class RestoreCouponUseCase {
             throw new IllegalStateException("사용된 쿠폰만 복구할 수 있습니다.");
         }
 
-        userCoupon.setStatus(UserCouponStatus.AVAILABLE);
-        userCoupon.setUsedAt(null);
+        // 비즈니스 메서드 사용
+        userCoupon.restore();
         userCouponRepository.save(userCoupon);
     }
 }
