@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -52,24 +53,33 @@ public class CreateOrderUseCase {
             discountAmount = useCouponUseCase.execute(couponCommand);
         }
 
-        // 주문 생성
-        Order order = new Order();
-        order.setUserId(command.getUserId());
-        order.setStatus(OrderStatus.CREATED);
-        order.setCreatedAt(LocalDateTime.now());
-        order.setUserCouponId(command.getUserCouponId());
-
+        // 주문 총액 계산
         int subtotal = command.getOrderItems().stream().mapToInt(i -> i.getQuantity() * i.getPrice()).sum();
         int finalAmount = Math.max(subtotal - discountAmount, 0);
 
-        order.setTotalAmount(finalAmount);
-        order.setDiscountAmount(discountAmount);
+        // 주문 생성 (Builder 패턴)
+        Order order = Order.builder()
+                .userId(command.getUserId())
+                .status(OrderStatus.CREATED)
+                .totalAmount(finalAmount)
+                .discountAmount(discountAmount)
+                .userCouponId(command.getUserCouponId())
+                .build();
 
         Order savedOrder = orderRepository.save(order);
 
         // OrderItem Batch Insert (N번 INSERT → 1번 Batch INSERT)
-        command.getOrderItems().forEach(item -> item.setOrderId(savedOrder.getId()));
-        orderItemRepository.saveAll(command.getOrderItems());
+        // Builder로 orderId 설정된 새로운 OrderItem 생성
+        List<OrderItem> orderItemsWithOrderId = command.getOrderItems().stream()
+                .map(item -> OrderItem.builder()
+                        .orderId(savedOrder.getId())
+                        .productOptionId(item.getProductOptionId())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .build())
+                .toList();
+
+        orderItemRepository.saveAll(orderItemsWithOrderId);
 
         return savedOrder;
     }

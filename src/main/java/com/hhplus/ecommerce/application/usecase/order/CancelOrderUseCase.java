@@ -31,9 +31,6 @@ public class CancelOrderUseCase {
         Order order = orderRepository.findById(command.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
-        if (order.getStatus() == OrderStatus.CANCELLED)
-            throw new IllegalStateException("이미 취소된 주문입니다.");
-
         // 재고 복구
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(command.getOrderId());
         for (OrderItem orderItem : orderItems) {
@@ -51,8 +48,8 @@ public class CancelOrderUseCase {
             restoreCouponUseCase.execute(couponCommand);
         }
 
-        // 상태 변경
-        order.setStatus(OrderStatus.CANCELLED);
+        // 상태 변경 (비즈니스 메서드 사용)
+        order.cancel();
         return orderRepository.save(order);
     }
 }
