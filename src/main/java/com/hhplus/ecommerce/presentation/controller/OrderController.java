@@ -31,13 +31,13 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderCreateRequestDto request) {
-        List<OrderItem> orderItems = request.getCartItems().stream().map(i -> {
-            OrderItem item = new OrderItem();
-            item.setProductOptionId(i.getProductOptionId());
-            item.setQuantity(i.getQuantity());
-            item.setPrice(i.getPrice());
-            return item;
-        }).collect(Collectors.toList());
+        List<OrderItem> orderItems = request.getCartItems().stream().map(i ->
+            OrderItem.builder()
+                    .productOptionId(i.getProductOptionId())
+                    .quantity(i.getQuantity())
+                    .price(i.getPrice())
+                    .build()
+        ).collect(Collectors.toList());
 
         CreateOrderCommand command = new CreateOrderCommand(request.getUserId(), orderItems, request.getCouponId());
         Order order = createOrderUseCase.execute(command);
