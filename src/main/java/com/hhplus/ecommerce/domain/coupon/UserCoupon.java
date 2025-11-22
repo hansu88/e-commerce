@@ -1,15 +1,14 @@
 package com.hhplus.ecommerce.domain.coupon;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
  * 사용자 쿠폰 Entity (발급된 쿠폰)
+ * - Setter 제거, Builder 패턴 적용
+ * - 비즈니스 로직 메서드로 캡슐화
  */
 @Entity
 @Table(
@@ -22,9 +21,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 // 유저용
 public class UserCoupon {
     @Id
@@ -82,10 +81,10 @@ public class UserCoupon {
      */
     public void use() {
         if (this.status == UserCouponStatus.USED) {
-            throw new IllegalStateException("이미 사용된 쿠폰입니다");
+            throw new IllegalStateException("이미 사용된 쿠폰입니다.");
         }
         if (this.status == UserCouponStatus.EXPIRED) {
-            throw new IllegalStateException("만료된 쿠폰입니다");
+            throw new IllegalStateException("만료된 쿠폰입니다.");
         }
 
         this.status = UserCouponStatus.USED;

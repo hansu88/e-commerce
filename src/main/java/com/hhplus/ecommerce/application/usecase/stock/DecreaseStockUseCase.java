@@ -5,6 +5,7 @@ import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockHistory;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
+import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
@@ -39,9 +40,9 @@ public class DecreaseStockUseCase {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("재고 차감 실패: 인터럽트", ie);
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (OutOfStockException | IllegalArgumentException e) {
                 // 재고 부족, 잘못된 수량 등 비즈니스 규칙 위반 시 즉시 실패
-                throw e; 
+                throw e;
             }
         }
 
