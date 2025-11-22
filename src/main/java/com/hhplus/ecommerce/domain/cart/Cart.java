@@ -1,15 +1,13 @@
 package com.hhplus.ecommerce.domain.cart;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 장바구니 Entity
+ * 장바구니 Entity (캡슐화 개선)
+ * - Setter 제거, Builder 패턴 적용
  */
 @Entity
 @Table(
@@ -19,9 +17,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 // 관리자용
 public class Cart {
     @Id

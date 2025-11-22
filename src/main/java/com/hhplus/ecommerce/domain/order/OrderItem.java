@@ -1,16 +1,14 @@
 package com.hhplus.ecommerce.domain.order;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 주문 항목 엔티티
- * 인기 상품 집계를 위해 createdAt 필드 포함
+ * 주문 항목 엔티티 (캡슐화 개선)
+ * - 인기 상품 집계를 위해 createdAt 필드 포함
+ * - Setter 제거, Builder 패턴 적용
  */
 @Entity
 @Table(
@@ -23,9 +21,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 // 유저 ,관리자용
 public class OrderItem {
     @Id

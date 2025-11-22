@@ -6,9 +6,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * 포인트 엔티티
+ * 포인트 엔티티 (캡슐화 개선)
  * - userId별 포인트 잔액 관리
  * - @Version으로 동시성 제어
+ * - Setter 제거, Builder 패턴 적용
+ * - 비즈니스 로직 메서드로 캡슐화
  */
 @Entity
 @Table(
@@ -16,9 +18,9 @@ import java.time.LocalDateTime;
         indexes = @Index(name = "idx_user_id", columnList = "user_id")
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class Point {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

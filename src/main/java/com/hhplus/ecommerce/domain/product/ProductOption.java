@@ -1,19 +1,25 @@
 package com.hhplus.ecommerce.domain.product;
 
+import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
+/**
+ * 상품 옵션 Entity (캡슐화 개선)
+ * - Setter 제거, Builder 패턴 적용
+ * - 비즈니스 로직 메서드로 캡슐화
+ */
 @Entity
 @Table(
         name = "product_options",
         indexes = @Index(name = "idx_product_id", columnList = "product_id")
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class ProductOption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,14 +61,15 @@ public class ProductOption {
     /**
      * 재고 차감
      * @param quantity 차감할 수량
-     * @throws IllegalArgumentException 수량이 0 이하이거나 재고가 부족한 경우
+     * @throws IllegalArgumentException 수량이 0 이하인 경우
+     * @throws OutOfStockException 재고가 부족한 경우
      */
     public void decreaseStock(int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("차감 수량은 양수여야 합니다");
         }
         if (this.stock < quantity) {
-            throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + this.stock + ", 요청 수량: " + quantity);
+            throw new OutOfStockException("재고가 부족합니다. 현재 재고: " + this.stock + ", 요청 수량: " + quantity);
         }
         this.stock -= quantity;
     }

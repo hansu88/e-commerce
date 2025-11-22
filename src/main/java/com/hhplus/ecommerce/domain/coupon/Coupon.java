@@ -1,15 +1,14 @@
 package com.hhplus.ecommerce.domain.coupon;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 쿠폰 Entity
+ * 쿠폰 Entity (캡슐화 개선)
+ * - Setter 제거, Builder 패턴 적용
+ * - 비즈니스 로직을 메서드로 캡슐화
  */
 @Entity
 @Table(
@@ -19,9 +18,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 // 관리자용
 public class Coupon {
     @Id
@@ -68,5 +67,16 @@ public class Coupon {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 쿠폰 발급 수량 증가
+     * - 비즈니스 규칙: 발급 수량이 총 수량을 초과할 수 없음
+     */
+    public void increaseIssuedQuantity() {
+        if (this.issuedQuantity >= this.totalQuantity) {
+            throw new IllegalStateException("쿠폰 발급 한도 초과");
+        }
+        this.issuedQuantity++;
     }
 }

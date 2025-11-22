@@ -1,15 +1,13 @@
 package com.hhplus.ecommerce.domain.product;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 상품 Entity
+ * 상품 Entity (캡슐화 개선)
+ * - Setter 제거, Builder 패턴 적용
  */
 @Entity
 @Table(
@@ -19,9 +17,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

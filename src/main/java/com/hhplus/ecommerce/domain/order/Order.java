@@ -1,15 +1,13 @@
 package com.hhplus.ecommerce.domain.order;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 주문 엔티티
+ * 주문 엔티티 (캡슐화 개선)
+ * - Setter 제거, Builder 패턴 적용
  */
 @Entity
 @Table(
@@ -20,9 +18,9 @@ import java.time.LocalDateTime;
     }
 )
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 // 유저 ,관리자용
 public class Order {
     @Id
@@ -60,5 +58,25 @@ public class Order {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 주문 취소
+     */
+    public void cancel() {
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+        this.status = OrderStatus.CANCELLED;
+    }
+
+    /**
+     * 주문 결제
+     */
+    public void pay() {
+        if (this.status == OrderStatus.PAID) {
+            throw new IllegalStateException("이미 결제된 주문입니다.");
+        }
+        this.status = OrderStatus.PAID;
     }
 }
