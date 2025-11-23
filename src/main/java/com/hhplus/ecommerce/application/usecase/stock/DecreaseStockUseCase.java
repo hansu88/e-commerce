@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.application.usecase.stock;
 
 import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
+import com.hhplus.ecommerce.common.util.RetryUtils;
 import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockHistory;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
@@ -14,7 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 재고 차감 UseCase
  * - 낙관적 락 (@Version) 사용
- * - OptimisticLockException 발생 시 최대 5회 재시도
+ * - OptimisticLockException 발생 시 최대 30회 재시도 (지수 백오프)
+ *
+ * 재시도 전략:
+ * - 최대 재시도: 30회
+ * - 백오프: 지수 백오프 (1ms, 2ms, 4ms, ..., 최대 100ms)
+ * - 누적 최대 대기: 약 900ms
+ *
+ * 재시도 횟수 근거:
+ * - 재고 차감은 주문 시 발생하여 충돌 빈도가 중간 수준
+ * - 적절한 재시도로 성공률과 응답 시간 균형
  */
 @Component
 @RequiredArgsConstructor
@@ -24,6 +34,7 @@ public class DecreaseStockUseCase {
     private final StockHistoryRepository stockHistoryRepository;
 
     private static final int MAX_RETRIES = 30;
+    private static final long MAX_BACKOFF_MS = 100L;
 
     public void execute(DecreaseStockCommand command) {
         int retryCount = 0;
@@ -35,7 +46,7 @@ public class DecreaseStockUseCase {
             } catch (OptimisticLockingFailureException e) {
                 retryCount++;
                 try {
-                    Thread.sleep(retryCount * 5L); // 점진적 backoff
+                    RetryUtils.backoff(retryCount, MAX_BACKOFF_MS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("재고 차감 실패: 인터럽트", ie);

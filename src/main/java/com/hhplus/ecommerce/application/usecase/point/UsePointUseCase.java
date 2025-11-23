@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.application.usecase.point;
 
 import com.hhplus.ecommerce.application.command.point.UsePointCommand;
+import com.hhplus.ecommerce.common.util.RetryUtils;
 import com.hhplus.ecommerce.domain.point.Point;
 import com.hhplus.ecommerce.domain.point.PointHistory;
 import com.hhplus.ecommerce.domain.point.PointType;
@@ -14,7 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 포인트 사용 UseCase
  * - 낙관적 락 (@Version) 사용
- * - OptimisticLockException 발생 시 최대 30회 재시도
+ * - OptimisticLockException 발생 시 최대 30회 재시도 (지수 백오프)
+ *
+ * 재시도 전략:
+ * - 최대 재시도: 30회
+ * - 백오프: 지수 백오프 (1ms, 2ms, 4ms, ..., 최대 100ms)
+ * - 누적 최대 대기: 약 900ms
+ *
+ * 재시도 횟수 근거:
+ * - 포인트 사용은 결제 시 발생하여 충돌 빈도가 중간 수준
+ * - 재고/쿠폰 대비 상대적으로 낮은 충돌률
  */
 @Component
 @RequiredArgsConstructor
@@ -24,6 +34,7 @@ public class UsePointUseCase {
     private final PointHistoryRepository pointHistoryRepository;
 
     private static final int MAX_RETRIES = 30;
+    private static final long MAX_BACKOFF_MS = 100L;
 
     public void execute(UsePointCommand command) {
         int retryCount = 0;
@@ -35,7 +46,7 @@ public class UsePointUseCase {
             } catch (OptimisticLockingFailureException e) {
                 retryCount++;
                 try {
-                    Thread.sleep(retryCount * 5L); // 점진적 backoff
+                    RetryUtils.backoff(retryCount, MAX_BACKOFF_MS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("포인트 사용 실패: 인터럽트", ie);

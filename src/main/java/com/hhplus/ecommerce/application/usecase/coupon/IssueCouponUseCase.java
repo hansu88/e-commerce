@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.application.usecase.coupon;
 
 import com.hhplus.ecommerce.application.command.coupon.IssueCouponCommand;
+import com.hhplus.ecommerce.common.util.RetryUtils;
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.coupon.UserCouponStatus;
@@ -17,7 +18,17 @@ import java.time.LocalDateTime;
 /**
  * 쿠폰 발급 UseCase
  * - 낙관적 락 (@Version) 사용
- * - OptimisticLockException 발생 시 최대 5회 재시도
+ * - OptimisticLockException 발생 시 최대 100회 재시도 (지수 백오프)
+ *
+ * 재시도 전략:
+ * - 최대 재시도: 100회
+ * - 백오프: 지수 백오프 (1ms, 2ms, 4ms, 8ms, ..., 최대 100ms)
+ * - 누적 최대 대기: 약 1.2초 (선형 백오프 대비 90% 감소)
+ *
+ * 재시도 횟수 근거:
+ * - 쿠폰 선착순 발급은 충돌이 매우 빈번한 시나리오
+ * - 높은 재시도 횟수로 사용자 경험 개선
+ * - 향후 비관적 락으로 전환 예정 (STEP 2)
  */
 @Component
 @RequiredArgsConstructor
@@ -27,6 +38,7 @@ public class IssueCouponUseCase {
     private final UserCouponRepository userCouponRepository;
 
     private static final int MAX_RETRIES = 100;
+    private static final long MAX_BACKOFF_MS = 100L;
 
     public UserCoupon execute(IssueCouponCommand command) {
         int retryCount = 0;
@@ -37,7 +49,7 @@ public class IssueCouponUseCase {
             } catch (ObjectOptimisticLockingFailureException e) {
                 retryCount++;
                 try {
-                    Thread.sleep(retryCount * 2L); // 점진적 back-off (2ms씩 증가)
+                    RetryUtils.backoff(retryCount, MAX_BACKOFF_MS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("쿠폰 발급 실패: 인터럽트", ie);

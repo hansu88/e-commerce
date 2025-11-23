@@ -1,6 +1,7 @@
 package com.hhplus.ecommerce.application.usecase.cart;
 
 import com.hhplus.ecommerce.application.command.cart.AddCartItemCommand;
+import com.hhplus.ecommerce.common.util.RetryUtils;
 import com.hhplus.ecommerce.domain.cart.Cart;
 import com.hhplus.ecommerce.domain.cart.CartItem;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CartItemRepository;
@@ -18,6 +19,15 @@ import java.util.Optional;
  * - 같은 상품 중복 추가 시 수량 증가
  * - UNIQUE 제약조건(uk_cart_product)으로 DB 레벨 중복 방지
  * - @Version으로 Lost Update 방지 (낙관적 락)
+ *
+ * 재시도 전략:
+ * - 최대 재시도: 50회
+ * - 백오프: 지수 백오프 (1ms, 2ms, 4ms, ..., 최대 100ms)
+ * - 누적 최대 대기: 약 1초
+ *
+ * 재시도 횟수 근거:
+ * - 장바구니 추가는 사용자 액션이 비동기적으로 발생
+ * - 중간 수준의 충돌 빈도 예상
  */
 @Component
 @RequiredArgsConstructor
@@ -27,6 +37,7 @@ public class AddCartItemUseCase {
     private final CartItemRepository cartItemRepository;
 
     private static final int MAX_RETRIES = 50;
+    private static final long MAX_BACKOFF_MS = 100L;
 
     public CartItem execute(AddCartItemCommand command) {
         int retryCount = 0;
@@ -37,7 +48,7 @@ public class AddCartItemUseCase {
             } catch (ObjectOptimisticLockingFailureException e) {
                 retryCount++;
                 try {
-                    Thread.sleep(retryCount * 2L); // 점진적 back-off
+                    RetryUtils.backoff(retryCount, MAX_BACKOFF_MS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new IllegalStateException("장바구니 추가 실패: 인터럽트", ie);
