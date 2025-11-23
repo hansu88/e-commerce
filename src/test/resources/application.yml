@@ -24,6 +24,14 @@ spring:
           sql:
             BasicBinder: TRACE
 
+  # Redis 설정 (분산락 테스트용)
+  data:
+    redis:
+      host: 192.168.4.81
+      port: 6379
+      password: redis1234
+      timeout: 3000ms
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
