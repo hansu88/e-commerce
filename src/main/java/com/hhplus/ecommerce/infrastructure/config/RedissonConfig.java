@@ -34,11 +34,15 @@ public class RedissonConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.password}")
+    private String redisPassword;
+
     /**
      * RedissonClient Bean 생성
      *
      * useSingleServer() 설정:
      * - address: redis://host:port 형식
+     * - password: Redis 인증 비밀번호
      * - connectionPoolSize: 연결 풀 크기 (기본 64)
      * - connectionMinimumIdleSize: 최소 유휴 연결 수 (기본 24)
      * - timeout: 응답 타임아웃 3초
@@ -50,11 +54,12 @@ public class RedissonConfig {
         Config config = new Config();
         config.useSingleServer()
                 .setAddress("redis://" + redisHost + ":" + redisPort)
-                .setConnectionPoolSize(50)           // 연결 풀 크기
-                .setConnectionMinimumIdleSize(10)    // 최소 유휴 연결
-                .setTimeout(3000)                     // 응답 타임아웃 3초
-                .setRetryAttempts(3)                  // 재시도 3회
-                .setRetryInterval(1500);              // 재시도 간격 1.5초
+                .setPassword(redisPassword)           // Redis 인증 비밀번호
+                .setConnectionPoolSize(50)            // 연결 풀 크기
+                .setConnectionMinimumIdleSize(10)     // 최소 유휴 연결
+                .setTimeout(3000)                      // 응답 타임아웃 3초
+                .setRetryAttempts(3)                   // 재시도 3회
+                .setRetryInterval(1500);               // 재시도 간격 1.5초
 
         return Redisson.create(config);
     }
