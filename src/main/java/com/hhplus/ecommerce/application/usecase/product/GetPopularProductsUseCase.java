@@ -7,6 +7,7 @@ import com.hhplus.ecommerce.infrastructure.persistence.base.PopularProductReposi
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductRepository;
 import com.hhplus.ecommerce.presentation.dto.response.product.ProductPopularResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,22 @@ public class GetPopularProductsUseCase {
     private final ProductRepository productRepository;
     private final PopularProductRepository popularProductRepository;
 
+    /**
+     * 인기 상품 조회 (캐싱 적용)
+     *
+     * @Cacheable:
+     * - 캐시 이름: "popularProducts" (TTL 5분)
+     * - 캐시 키: days + limit (예: "3::10")
+     * - 동작: 캐시 히트 시 DB 조회 생략, 미스 시 DB 조회 후 캐싱
+     *
+     * Master-Replica 동작:
+     * 1. 캐시 미스 → Master에서 쓰기 → Replica로 복제
+     * 2. 캐시 히트 → Replica에서 읽기 (부하 분산)
+     */
+    @Cacheable(
+            value = "popularProducts",
+            key = "#command.days + '::' + #command.limit"
+    )
     @Transactional(readOnly = true)
     public List<ProductPopularResponseDto> execute(GetPopularProductsCommand command) {
         // 1. 최근 N일간의 일별 집계 데이터 조회
