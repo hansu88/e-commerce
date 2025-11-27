@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: ecommerce
+
+  # JPA 활성화 - Docker MySQL 사용 (192.168.4.81)
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.4.81:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: hhplus
+    password: hhplus1234
+    # HikariCP 연결 풀 설정 (동시성 테스트 대응)
+    hikari:
+      maximum-pool-size: 100          # 최대 연결 수 증가 (기본 10 → 100)
+      minimum-idle: 10                # 최소 유휴 연결 수
+      connection-timeout: 30000       # 연결 타임아웃 30초
+      idle-timeout: 600000            # 유휴 연결 타임아웃 10분
+      max-lifetime: 1800000           # 최대 연결 수명 30분
+
+
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: false
+        # Batch Insert/Update 설정
+        jdbc:
+          batch_size: 50              # 한 번에 50개씩 Batch 처리
+        order_inserts: true            # INSERT 순서 보장 (Batch 효율)
+        order_updates: true            # UPDATE 순서 보장 (Batch 효율)
+
+
+  sql:
+    init:
+      mode: never
+
+  # Redis 설정 (분산락 & 캐싱)
+  data:
+    redis:
+      host: 192.168.4.81
+      port: 6379
+      password: redis1234          # Redis 인증 비밀번호
+      timeout: 3000ms              # 연결 타임아웃 3초
+      lettuce:
+        pool:
+          max-active: 10           # 최대 활성 연결 수
+          max-idle: 10             # 최대 유휴 연결 수
+          min-idle: 2              # 최소 유휴 연결 수
+          max-wait: 3000ms         # 연결 대기 시간
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+logging:
+  level:
+    #    실제 값확인하기 위한 작업
+    # Hibernate SQL 쿼리 보기
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
