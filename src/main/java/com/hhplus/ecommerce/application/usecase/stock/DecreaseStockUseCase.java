@@ -8,6 +8,7 @@ import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionReposit
 import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import com.hhplus.ecommerce.presentation.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,14 @@ public class DecreaseStockUseCase {
     private static final int MAX_RETRIES = 30;
     private static final long MAX_BACKOFF_MS = 100L;
 
+    /**
+     * 재고 차감
+     *
+     * @CacheEvict: 재고가 변경되므로 productList 캐시 무효화
+     * - allEntries = true: 캐시 전체 삭제 (어떤 상품인지 모르므로)
+     * - 다음 조회 시 DB에서 최신 재고 정보 조회
+     */
+    @CacheEvict(value = "productList", allEntries = true)
     public void execute(DecreaseStockCommand command) {
         int retryCount = 0;
 

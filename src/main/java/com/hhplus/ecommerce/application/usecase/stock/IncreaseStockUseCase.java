@@ -6,6 +6,7 @@ import com.hhplus.ecommerce.domain.stock.StockHistory;
 import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.StockHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,13 @@ public class IncreaseStockUseCase {
     private final ProductOptionRepository productOptionRepository;
     private final StockHistoryRepository stockHistoryRepository;
 
+    /**
+     * 재고 증가
+     *
+     * @CacheEvict: 재고가 변경되므로 productList 캐시 무효화
+     * - 주문 취소 시 재고 복구할 때 사용
+     */
+    @CacheEvict(value = "productList", allEntries = true)
     @Transactional
     public void execute(IncreaseStockCommand command) {
         ProductOption option = productOptionRepository.findById(command.getProductOptionId())
