@@ -5,16 +5,19 @@ import com.hhplus.ecommerce.application.usecase.coupon.UseCouponUseCase;
 import com.hhplus.ecommerce.application.usecase.stock.DecreaseStockUseCase;
 import com.hhplus.ecommerce.application.command.stock.DecreaseStockCommand;
 import com.hhplus.ecommerce.application.command.coupon.UseCouponCommand;
+import com.hhplus.ecommerce.application.service.product.RankingService;
 
 import com.hhplus.ecommerce.domain.coupon.Coupon;
 import com.hhplus.ecommerce.domain.coupon.UserCoupon;
 import com.hhplus.ecommerce.domain.order.Order;
 import com.hhplus.ecommerce.domain.order.OrderItem;
 import com.hhplus.ecommerce.domain.order.OrderStatus;
+import com.hhplus.ecommerce.domain.product.ProductOption;
 import com.hhplus.ecommerce.domain.stock.StockChangeReason;
 import com.hhplus.ecommerce.infrastructure.persistence.base.CouponRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.OrderItemRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.OrderRepository;
+import com.hhplus.ecommerce.infrastructure.persistence.base.ProductOptionRepository;
 import com.hhplus.ecommerce.infrastructure.persistence.base.UserCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
@@ -50,9 +53,11 @@ public class CreateOrderUseCase {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ProductOptionRepository productOptionRepository;
     private final DecreaseStockUseCase decreaseStockUseCase;
     private final UseCouponUseCase useCouponUseCase;
     private final RedissonClient redissonClient;
+    private final RankingService rankingService;
 
     /**
      * 주문 생성 (분산락 적용)
@@ -161,6 +166,34 @@ public class CreateOrderUseCase {
 
         orderItemRepository.saveAll(orderItemsWithOrderId);
 
+        // 상품 랭킹 업데이트 (STEP 13: Redis Sorted Set)
+        // - 주문 완료 시 각 상품의 판매 수량을 Redis에 기록
+        // - 실시간 인기 상품 랭킹에 활용
+        updateProductRanking(command.getOrderItems());
+
         return savedOrder;
+    }
+
+    /**
+     * 상품 랭킹 업데이트
+     * - 각 OrderItem의 productOptionId → productId 조회
+     * - Redis Sorted Set에 판매 수량 누적
+     */
+    private void updateProductRanking(List<OrderItem> orderItems) {
+        for (OrderItem item : orderItems) {
+            try {
+                // ProductOption 조회하여 productId 가져오기
+                ProductOption option = productOptionRepository.findById(item.getProductOptionId())
+                        .orElse(null);
+
+                if (option != null) {
+                    // Redis 랭킹 업데이트 (productId, 판매 수량)
+                    rankingService.incrementProductScore(option.getProductId(), item.getQuantity());
+                }
+            } catch (Exception e) {
+                // 랭킹 업데이트 실패 시 로깅만 하고 주문은 계속 진행
+                // (랭킹은 부가 기능이므로 주문 실패로 이어지면 안 됨)
+            }
+        }
     }
 }
