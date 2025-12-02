@@ -2,12 +2,15 @@ package com.hhplus.ecommerce.presentation.controller;
 
 import com.hhplus.ecommerce.application.command.product.GetPopularProductsCommand;
 import com.hhplus.ecommerce.application.command.product.GetProductDetailCommand;
+import com.hhplus.ecommerce.application.command.product.GetProductRankingCommand;
 import com.hhplus.ecommerce.application.usecase.product.GetPopularProductsUseCase;
 import com.hhplus.ecommerce.application.usecase.product.GetProductDetailUseCase;
 import com.hhplus.ecommerce.application.usecase.product.GetProductListUseCase;
+import com.hhplus.ecommerce.application.usecase.product.GetProductRankingUseCase;
 import com.hhplus.ecommerce.presentation.dto.response.product.ProductDetailResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.product.ProductListResponseDto;
 import com.hhplus.ecommerce.presentation.dto.response.product.ProductPopularResponseDto;
+import com.hhplus.ecommerce.presentation.dto.response.product.ProductRankingResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +28,7 @@ public class ProductController {
     private final GetProductListUseCase getProductListUseCase;
     private final GetProductDetailUseCase getProductDetailUseCase;
     private final GetPopularProductsUseCase getPopularProductsUseCase;
+    private final GetProductRankingUseCase getProductRankingUseCase;
 
     /** 전체 상품 조회 */
     @GetMapping
@@ -47,7 +51,24 @@ public class ProductController {
             @RequestParam(defaultValue = "5") int limit) {
 
         GetPopularProductsCommand command = new GetPopularProductsCommand(days, limit);
-        command.validate(); 
+        command.validate();
         return ResponseEntity.ok(getPopularProductsUseCase.execute(command));
+    }
+
+    /**
+     * 상품 랭킹 조회 (Redis Sorted Set)
+     * - 실시간 판매 수량 기반 랭킹
+     * - Redis에서 TOP N 조회
+     *
+     * @param count 조회할 개수 (기본값: 5)
+     * @return 상품 랭킹 리스트
+     */
+    @GetMapping("/ranking")
+    public ResponseEntity<List<ProductRankingResponseDto>> getProductRanking(
+            @RequestParam(defaultValue = "5") int count) {
+
+        GetProductRankingCommand command = new GetProductRankingCommand(count);
+        command.validate();
+        return ResponseEntity.ok(getProductRankingUseCase.execute(command));
     }
 }
