@@ -2,10 +2,10 @@ spring:
   application:
     name: ecommerce
 
-  # JPA 활성화 - Docker MySQL 사용 (192.168.4.81)
+  # JPA 활성화 - Docker MySQL 사용 (192.168.4.84)
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.4.81:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://192.168.4.84:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: hhplus
     password: hhplus1234
     # HikariCP 연결 풀 설정 (동시성 테스트 대응)
@@ -42,7 +42,7 @@ spring:
   # Redis 설정 (분산락 & 캐싱)
   data:
     redis:
-      host: 192.168.4.81
+      host: 192.168.4.84
       port: 6379
       password: redis1234          # Redis 인증 비밀번호
       timeout: 3000ms              # 연결 타임아웃 3초

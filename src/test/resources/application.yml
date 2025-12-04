@@ -4,7 +4,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.4.81:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://192.168.4.84:3306/hhplus_ecommerce?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: hhplus
     password: hhplus1234
 
@@ -27,7 +27,7 @@ spring:
   # Redis 설정 (분산락 테스트용)
   data:
     redis:
-      host: 192.168.4.81
+      host: 192.168.4.84
       port: 6379
       password: redis1234
       timeout: 3000ms
