@@ -309,7 +309,7 @@ int displayRank = rank != null ? rank.intValue() + 1 : 0;
 
 ---
 
-## 📈 성능 특성
+## 성능 특성
 
 ### 시간 복잡도
 ```
@@ -333,9 +333,6 @@ Redis Sorted Set:
 ```
 
 ---
-
-## 🎯 우리 프로젝트 적용 계획
-
 ### 언제 업데이트?
 ```
 주문 완료 시 (CreateOrderUseCase):
@@ -359,10 +356,3 @@ GET /api/products/ranking?count=5
 - 주문 취소 시에도 점수 유지 (누적 판매량)
 - 필요하면 스케줄러로 주기적 초기화 (예: 매월 1일)
 ```
-
----
-
-## 📚 참고 자료
-
-- [Redis Sorted Set 공식 문서](https://redis.io/docs/data-types/sorted-sets/)
-- [Spring Data Redis - ZSetOperations](https://docs.spring.io/spring-data/redis/docs/current/api/org/springframework/data/redis/core/ZSetOperations.html)

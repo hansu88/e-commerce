@@ -217,29 +217,3 @@ public void pubSubLockBenchmark() {
 ```
 
 ---
-
-## 🎯 핵심 정리
-
-| 비교 | Spin Lock | Pub/Sub Lock |
-|------|-----------|--------------|
-| **방식** | 계속 확인 (polling) | 알림 받기 (event) |
-| **CPU** | 높음 | 낮음 |
-| **네트워크** | 많음 | 적음 |
-| **반응 속도** | 느림 (간격만큼) | 빠름 (즉시) |
-| **사용 사례** | 짧은 락, 적은 스레드 | 긴 락, 많은 스레드 |
-| **우리 선택** | ❌ | ✅ |
-
-**한 줄 요약:**
-```
-Spin Lock = 계속 확인 (바쁨)
-Pub/Sub Lock = 알림 받기 (효율적) ⭐
-→ Redisson은 Pub/Sub 사용!
-```
-
----
-
-## 📚 참고 자료
-
-- [Redisson Lock 구현](https://github.com/redisson/redisson/wiki/8.-Distributed-locks-and-synchronizers)
-- [Redis Pub/Sub](https://redis.io/docs/manual/pubsub/)
-- [Lock-Free Programming](https://preshing.com/20120612/an-introduction-to-lock-free-programming/)
